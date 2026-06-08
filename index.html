@@ -183,10 +183,10 @@
         </div>
       </div>
       <div class="legend">
-        <div class="li"><div class="ld" style="background:#A7F3D0"></div>Eagl</div>
-        <div class="li"><div class="ld" style="background:#D1FAE5"></div>Bird</div>
+        <div class="li"><div class="ld" style="background:#A7F3D0"></div>Eagle</div>
+        <div class="li"><div class="ld" style="background:#D1FAE5"></div>Birdie</div>
         <div class="li"><div class="ld" style="background:#F1F5F9; border: 1px solid var(--border);"></div>Par</div>
-        <div class="li"><div class="ld" style="background:#FFEDD5"></div>Bog</div>
+        <div class="li"><div class="ld" style="background:#FFEDD5"></div>Bogey</div>
         <div class="li"><div class="ld" style="background:#FFE4E6"></div>Dbl+</div>
       </div>
       <div class="scorecard-wrap">
@@ -256,7 +256,7 @@
           <input type="text" id="direct-p-name" placeholder="Ej: Manuel Bisonó">
         </div>
         <div class="field">
-          <label>Hándicap Índice</label>
+          <label>Hándicap Índice inicial</label>
           <input type="number" id="direct-p-hcp" min="0" max="54" step="0.1" value="0">
         </div>
       </div>
@@ -291,7 +291,6 @@
 </div>
 
 <script>
-// URL de tu proyecto real de Firebase Realtime Database
 const FIREBASE_URL = "https://golf-scorecard-rd-default-rtdb.firebaseio.com/"; 
 
 let appState = {
@@ -321,7 +320,6 @@ function showStatusBanner(text, time = 2000) {
   setTimeout(() => { banner.style.display = 'none'; }, time);
 }
 
-// Cargar datos unificados desde Firebase Cloud
 async function loadFromStorage() {
   try {
     const response = await fetch(`${FIREBASE_URL}golf_data.json`);
@@ -333,13 +331,12 @@ async function loadFromStorage() {
       await saveToStorage();
     }
   } catch(e) {
-    console.error("Error conectando a la nube, usando base local por defecto", e);
+    console.error("Error conectando a la nube", e);
     setDefaultData();
   }
   ensureDataStructures();
 }
 
-// Guardar datos unificados en Firebase Cloud
 async function saveToStorage() {
   ensureDataStructures();
   try {
@@ -436,7 +433,7 @@ async function saveNewCourse() {
     holePars.push(val);
   });
   
-  if(!valid) { alert('Por favor, ingresa pares válidos entre 3 y 5.'); return; }
+  if(!valid) { alert('Por favor, ingresa pares válidos.'); return; }
   
   const newCourse = { id: generateCode('CRS'), name: name, holes: holes, totalPar: totalPar, pars: holePars };
   appState.courses.push(newCourse);
@@ -549,6 +546,7 @@ function handlePlayerSelectChange(idx) {
     inputHcp.value = '0';
   } else if (select.value !== "") {
     inputName.style.display = 'none';
+    // Buscamos directamente el hándicap actualizado del estado global
     const player = appState.savedPlayers.find(p => p.code === select.value);
     if(player) inputHcp.value = player.hcp || 0;
   } else {
@@ -592,6 +590,7 @@ async function startGame() {
     } else if(pCode !== "") {
       const match = appState.savedPlayers.find(p => p.code === pCode);
       pName = match ? match.name : 'Desconocido';
+      // Priorizar siempre el hándicap actual ingresado o cargado en la mesa
     } else {
       continue;
     }
@@ -702,7 +701,18 @@ function recalcLiveMatrixTotals() {
 async function showResults() {
   let finalResults = activeGame.players.map(p => {
     const totalStrokes = activeGame.scores[p.code].reduce((a, b) => a + (parseInt(b) || 0), 0);
-    const hcpNeto = totalStrokes > 0 ? +((totalStrokes - activeGame.course.totalPar) * 0.96).toFixed(1) : null;
+    // Fórmula Hándicap Neto: (Golpes Totales - Hándicap - Par del Campo) * 0.96
+    const hcpNeto = totalStrokes > 0 ? +((totalStrokes - p.hcp - activeGame.course.totalPar) * 0.96).toFixed(1) : null;
+    
+    // MODIFICACIÓN CLAVE: Guardamos el Handicap Neto calculado como su nuevo Handicap Índice permanente
+    if (hcpNeto !== null) {
+      const globalPlayer = appState.savedPlayers.find(sp => sp.code === p.code);
+      if (globalPlayer) {
+        // El hándicap neto acumulado pasa a ser su hándicap oficial para el próximo juego
+        globalPlayer.hcp = hcpNeto; 
+      }
+    }
+    
     return { code: p.code, name: p.name, total: totalStrokes, hcpNeto: hcpNeto, hcpIdx: p.hcp };
   }).filter(r => r.total > 0).sort((a,b) => a.total - b.total);
 
@@ -724,7 +734,6 @@ async function showResults() {
     results: finalResults
   };
   
-  // Guardar en la lista global de partidas antes de sincronizar
   const matchIndex = appState.games.findIndex(g => g.id === gameRecord.id || (g.date === gameRecord.date && g.name === gameRecord.name));
   if (matchIndex > -1) {
     appState.games[matchIndex] = gameRecord;
@@ -732,10 +741,10 @@ async function showResults() {
     appState.games.unshift(gameRecord);
   }
   
+  // Guardamos todo el estado actualizado en Firebase
   await saveToStorage();
   
   document.getElementById('scorecard-sec').classList.remove('active');
-  document.getElementById('results-sec').add('active');
   document.getElementById('tab-nueva').querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('results-sec').classList.add('active');
   
@@ -750,20 +759,21 @@ function renderFinalDashboard(results, cardsId, tableId, parDelCampo) {
   const w = results[0];
   const diffPar = w.total - parDelCampo;
   cards.innerHTML = `
-    <div class="mc winner"><div class="ml">🏆 Ganador Absoluto</div><div class="mv">${w.name}</div><div class="ms">${w.total} Golpes</div></div>
+    <div class="mc winner"><div class="ml">🏆 Ganador Absoluto</div><div class="mv">${w.name}</div><div class="ms">${w.total} Golpes (Hcp inicial: ${w.hcpIdx})</div></div>
     <div class="mc"><div class="ml">Mejor Score Neto</div><div class="mv">${w.total}</div><div class="ms">${diffPar >= 0 ? '+' : ''}${diffPar} vs Par</div></div>
   `;
   
-  let html = `<thead><tr><th>Pos.</th><th>Jugador</th><th>Golpes</th><th>vs Par</th><th>Hcp Neto</th></tr></thead><tbody>`;
+  let html = `<thead><tr><th>Pos.</th><th>Jugador</th><th>Hcp Index</th><th>Golpes</th><th>vs Par</th><th>Nuevo Hándicap (Neto)</th></tr></thead><tbody>`;
   results.forEach((r, i) => {
     const diff = r.total - parDelCampo;
     const diffStr = diff === 0 ? 'E' : diff > 0 ? `+${diff}` : `${diff}`;
     html += `<tr>
       <td><b style="color:var(--primary)">#${i+1}</b></td>
       <td><strong>${r.name}</strong></td>
+      <td>${r.hcpIdx}</td>
       <td><b>${r.total}</b></td>
       <td>${diffStr}</td>
-      <td>${r.hcpNeto !== null ? r.hcpNeto : '—'}</td>
+      <td><b style="color:var(--primary)">${r.hcpNeto !== null ? r.hcpNeto : '—'}</b></td>
     </tr>`;
   });
   html += '</tbody>';
@@ -782,7 +792,7 @@ function renderHistoryList() {
   
   list.innerHTML = appState.games.map(g => {
     const badges = (g.results || []).map((r, idx) => 
-      `<span class="hp-badge ${idx === 0 ? 'winner-badge' : ''}">${idx === 0 ? '🏆 ' : ''}${r.name}: ${r.total}g</span>`
+      `<span class="hp-badge ${idx === 0 ? 'winner-badge' : ''}">${idx === 0 ? '🏆 ' : ''}${r.name}: ${r.total}g (Hcp ${r.hcpIdx || 0})</span>`
     ).join('');
     
     return `<div class="history-item" onclick="viewGameDetail('${g.id}')">
@@ -831,7 +841,7 @@ function viewGameDetail(id) {
   
   game.players.forEach(p => {
     const pScores = game.scores[p.code] || [];
-    html += `<tr><td class="pnc">${p.name}</td>`;
+    html += `<tr><td class="pnc">${p.name}<span class="c-info">Hcp ${p.hcp}</span></td>`;
     let oSum = 0, iSum = 0, tSum = 0;
     
     for(let h=0; h<c.holes; h++) {
