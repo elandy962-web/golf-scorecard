@@ -52,7 +52,7 @@
     @media(min-width: 600px) { .btn-primary { width: auto; } }
     .btn-primary:hover { background: var(--primary-hover); }
     .btn-secondary { background: var(--bg-card); border: 1px solid var(--border); padding: 10px 16px; border-radius: var(--radius-md); font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text-main); transition: all 0.2s ease; }
-    .btn-danger { background: #FFF1F2; border: 1px solid #FEE2E2; padding: 8px 14px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500; cursor: pointer; color: #E11D48; transition: all 0.2s ease; }
+    .btn-danger { background: #FFF1F2; border: 1px solid #FEE2E2; padding: 10px 16px; border-radius: var(--radius-md); font-size: 13px; font-weight: 600; cursor: pointer; color: #E11D48; transition: all 0.2s ease; text-align: center; display: inline-block; }
     .btn-danger:hover { background: #FFE4E6; }
     .btn-icon { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 20px; padding: 6px 10px; border-radius: var(--radius-md); }
     .btn-icon:hover { color: #E11D48; background: #FFF1F2; }
@@ -119,13 +119,13 @@
     .li { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-muted); }
     .ld { width: 12px; height: 12px; border-radius: 3px; }
 
-    .admin-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border); background: var(--bg-card); gap: 10px; }
+    .admin-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--border); background: var(--bg-card); }
     .admin-item:last-child { border-bottom: none; }
-    .admin-inputs { display: flex; gap: 8px; flex: 1; flex-wrap: wrap; }
-    .admin-inputs input { padding: 6px 10px; font-size: 14px; }
-    .admin-actions { display: flex; gap: 6px; }
+    .player-medals { display: flex; gap: 6px; font-size: 11px; margin-top: 4px; color: var(--text-muted); }
 
     .loading-banner { background: #E0F2FE; color: #0369A1; padding: 8px; text-align: center; font-size: 12px; font-weight: 600; border-radius: 8px; margin-bottom: 10px; display: none; }
+
+    .danger-zone-card { background: #FFF5F5; border: 1px dashed #FEB2B2; border-radius: var(--radius-lg); padding: 1.25rem; margin-top: 2rem; }
 
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(2px); }
@@ -216,7 +216,7 @@
 
   <div id="tab-campos" class="section">
     <div class="card">
-      <div class="card-title">Registrar Campo de Golf</div>
+      <div class="card-title" id="course-form-title">Registrar Campo de Golf</div>
       <div class="row">
         <div class="field">
           <label>Nombre del Campo</label>
@@ -241,7 +241,9 @@
         <div class="grid-pars" id="grid-pars-2" style="margin-top:6px;"></div>
       </div>
 
-      <button class="btn-primary" style="margin-top:1.5rem; width:100%;" onclick="saveNewCourse()">Guardar Campo de Golf</button>
+      <div id="course-form-actions" style="margin-top:1.5rem; display:flex; flex-direction:column; gap:10px;">
+        <button class="btn-primary" style="width:100%;" onclick="saveNewCourse()">Guardar Campo de Golf</button>
+      </div>
     </div>
 
     <div class="card">
@@ -252,7 +254,7 @@
 
   <div id="tab-jugadores" class="section">
     <div class="card">
-      <div class="card-title">Registrar Nuevo Jugador Fijo</div>
+      <div class="card-title" id="player-form-title">Registrar Nuevo Jugador Fijo</div>
       <div class="row">
         <div class="field">
           <label>Nombre Completo</label>
@@ -263,20 +265,52 @@
           <input type="number" id="direct-p-hcp" min="0" max="54" step="0.1" value="0">
         </div>
       </div>
-      <button class="btn-primary" style="width:100%" onclick="saveDirectPlayer()">Registrar Jugador</button>
+      <div id="player-form-actions" style="margin-top:1.5rem; display:flex; flex-direction:column; gap:10px;">
+        <button class="btn-primary" style="width:100%" onclick="saveDirectPlayer()">Registrar Jugador</button>
+      </div>
     </div>
 
     <div class="card">
-      <div class="card-title">Lista de Jugadores Registrados</div>
+      <div class="card-title">Lista de Jugadores Registrados e Historial de Podios</div>
       <div id="players-list-render" style="border: 1px solid var(--border); border-radius: var(--radius-md); overflow:hidden;"></div>
+    </div>
+
+    <div class="danger-zone-card">
+      <div style="font-size: 13px; font-weight: 700; color: #9B1C1C; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">⚠️ Zona de Control Destructivo</div>
+      <p style="font-size: 12px; color: #7F1D1D; margin-bottom: 12px; line-height: 1.4;">Esta acción borrará todas las partidas almacenadas en la base de datos de manera irreversible. Requiere confirmación manual por palabra clave.</p>
+      <button class="btn-danger" style="width: 100%; border-color: #FEB2B2;" onclick="clearAllHistorySecure()">Borrar Historial Completo de la Nube</button>
     </div>
   </div>
 
   <div id="tab-historial" class="section">
     <div id="history-main-sec">
+      
+      <div class="card" style="margin-bottom: 1rem;">
+        <div class="card-title" style="margin-bottom: 0.75rem;">🔍 Filtrar Récords e Historial por Fecha</div>
+        <div class="row" style="margin-bottom: 0;">
+          <div class="field">
+            <label>Fecha Inicial</label>
+            <input type="date" id="filter-start-date" onchange="renderHistoryList()">
+          </div>
+          <div class="field">
+            <label>Fecha Final</label>
+            <input type="date" id="filter-end-date" onchange="renderHistoryList()">
+          </div>
+          <div class="field" style="flex: 0 0 auto; width: auto;">
+            <button class="btn-secondary" style="height: 40px; padding: 0 15px;" onclick="clearHistoryFilters()">Limpiar Filtros</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-title" style="margin-bottom: 0.75rem; color: var(--primary);">📊 Récord de Posiciones en Fechas Consultadas</div>
+        <div class="rt-wrap">
+          <table class="rt" id="history-records-table"></table>
+        </div>
+      </div>
+
       <div class="section-hdr">
         <div class="section-title">Historial Clínico de Partidas</div>
-        <button class="btn-danger" style="width:100%; margin-top:8px;" onclick="clearAllHistory()">Borrar Historial Completo</button>
       </div>
       <div id="history-list"></div>
     </div>
@@ -311,6 +345,8 @@ let activeGame = {
 };
 
 let currentFormRows = [];
+let editingCourseId = null;
+let editingPlayerCode = null;
 
 function generateCode(prefix) {
   return prefix + '-' + Math.random().toString(36).substr(2, 5).toUpperCase();
@@ -386,9 +422,35 @@ function showTab(tab) {
   document.getElementById(`tab-${tab}`).classList.add('active');
   
   if (tab === 'nueva') { backToSetup(); }
-  if (tab === 'campos') { renderCamposTab(); }
-  if (tab === 'jugadores') { renderJugadoresTab(); }
-  if (tab === 'historial') { closeHistoryDetail(); renderHistoryList(); }
+  if (tab === 'campos') { cancelCourseEdit(); renderCamposTab(); }
+  if (tab === 'jugadores') { cancelPlayerEdit(); renderJugadoresTab(); }
+  if (tab === 'historial') { clearHistoryFilters(); closeHistoryDetail(); renderHistoryList(); }
+}
+
+function calculatePlayerRecordsFromGames(gamesList) {
+  let records = {};
+  
+  appState.savedPlayers.forEach(p => {
+    records[p.code] = { name: p.name, 1: 0, 2: 0, 3: 0, otros: 0, jugadas: 0 };
+  });
+
+  gamesList.forEach(g => {
+    if (g.results && g.results.length > 0) {
+      let sorted = [...g.results].sort((a,b) => a.total - b.total);
+      sorted.forEach((r, idx) => {
+        let pos = idx + 1;
+        if (!records[r.code]) {
+          records[r.code] = { name: r.name, 1: 0, 2: 0, 3: 0, otros: 0, jugadas: 0 };
+        }
+        records[r.code].jugadas++;
+        if (pos === 1) records[r.code][1]++;
+        else if (pos === 2) records[r.code][2]++;
+        else if (pos === 3) records[r.code][3]++;
+        else records[r.code].otros++;
+      });
+    }
+  });
+  return records;
 }
 
 function generateParsForm() {
@@ -438,86 +500,88 @@ async function saveNewCourse() {
   
   if(!valid) { alert('Por favor, ingresa pares válidos.'); return; }
   
-  const newCourse = { id: generateCode('CRS'), name: name, holes: holes, totalPar: totalPar, pars: holePars };
-  appState.courses.push(newCourse);
-  await saveToStorage();
+  if (editingCourseId) {
+    const courseIndex = appState.courses.findIndex(c => c.id === editingCourseId);
+    if (courseIndex > -1) {
+      appState.courses[courseIndex] = { id: editingCourseId, name: name, holes: holes, totalPar: totalPar, pars: holePars };
+    }
+    editingCourseId = null;
+  } else {
+    const newCourse = { id: generateCode('CRS'), name: name, holes: holes, totalPar: totalPar, pars: holePars };
+    appState.courses.push(newCourse);
+  }
   
-  document.getElementById('course-name').value = '';
+  await saveToStorage();
+  cancelCourseEdit();
   renderCamposTab();
 }
 
-// RENDER DE SECCIÓN CONFIGURAR CAMPOS (CON EDICIÓN INTEGRADA)
-function renderCamposTab() {
+function editCourse(id) {
+  const course = appState.courses.find(c => c.id === id);
+  if (!course) return;
+  
+  editingCourseId = id;
+  document.getElementById('course-form-title').textContent = "✏️ Editar Campo de Golf";
+  document.getElementById('course-name').value = course.name;
+  document.getElementById('course-holes').value = course.holes;
+  
   generateParsForm();
+  
+  const inputs = document.querySelectorAll('.c-par-val');
+  inputs.forEach((input, index) => {
+    if (course.pars[index] !== undefined) {
+      input.value = course.pars[index];
+    }
+  });
+  
+  recalcTotalParSum();
+  
+  const actionsZone = document.getElementById('course-form-actions');
+  actionsZone.innerHTML = `
+    <div style="display:flex; gap:10px; width:100%;">
+      <button class="btn-primary" style="flex:1;" onclick="saveNewCourse()">Actualizar Campo</button>
+      <button class="btn-secondary" style="flex:1;" onclick="cancelCourseEdit()">Cancelar</button>
+    </div>
+    <button class="btn-danger" style="width:100%; margin-top:5px;" onclick="deleteCourse('${id}')">⚠️ Eliminar Campo Permanentemente</button>
+  `;
+  
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function cancelCourseEdit() {
+  editingCourseId = null;
+  document.getElementById('course-form-title').textContent = "Registrar Campo de Golf";
+  document.getElementById('course-name').value = '';
+  document.getElementById('course-holes').value = '18';
+  generateParsForm();
+  
+  document.getElementById('course-form-actions').innerHTML = `
+    <button class="btn-primary" style="width:100%;" onclick="saveNewCourse()">Guardar Campo de Golf</button>
+  `;
+}
+
+function renderCamposTab() {
+  if (!editingCourseId) generateParsForm();
   const list = document.getElementById('courses-list-render');
   if(appState.courses.length === 0) {
     list.innerHTML = '<div style="padding:15px; color:var(--text-muted);">No hay campos creados todavía.</div>';
     return;
   }
-  
   list.innerHTML = appState.courses.map(c => 
-    `<div class="admin-item" id="item-course-${c.id}">
-      <div class="admin-inputs">
-        <input type="text" id="edit-cname-${c.id}" value="${c.name}" disabled style="font-weight:700; border:none; background:transparent; color:var(--text-main);">
-        <input type="number" id="edit-cpar-${c.id}" value="${c.totalPar}" disabled style="width:70px; border:none; background:transparent; text-align:center; color:var(--text-main);">
-        <span style="font-size:12px; color:var(--text-muted); align-self:center;">(${c.holes} Hoyos)</span>
+    `<div class="admin-item">
+      <div>
+        <strong style="color: var(--text-main)">⛳ ${c.name}</strong> <span style="font-size:12px">(${c.holes}H, Par ${c.totalPar})</span>
       </div>
-      <div class="admin-actions">
-        <button class="btn-secondary" style="padding:6px 12px; font-size:12px" id="btn-edit-course-${c.id}" onclick="toggleEditCourse('${c.id}')">✏️ Editar</button>
-        <button class="btn-danger" style="padding:6px 12px; font-size:12px; display:none;" id="btn-del-course-${c.id}" onclick="deleteCourse('${c.id}')">🗑️ Eliminar</button>
-      </div>
+      <button class="btn-secondary" style="padding: 6px 12px; font-size:11px; font-weight:600;" onclick="editCourse('${c.id}')">Editar</button>
     </div>`
   ).join('');
 }
 
-async function toggleEditCourse(id) {
-  const inputName = document.getElementById(`edit-cname-${id}`);
-  const inputPar = document.getElementById(`edit-cpar-${id}`);
-  const btnEdit = document.getElementById(`btn-edit-course-${id}`);
-  const btnDel = document.getElementById(`btn-del-course-${id}`);
-  
-  if (inputName.disabled) {
-    // Activar edición
-    inputName.disabled = false;
-    inputPar.disabled = false;
-    inputName.style.border = "1px solid var(--border)";
-    inputName.style.background = "var(--bg-card)";
-    inputPar.style.border = "1px solid var(--border)";
-    inputPar.style.background = "var(--bg-card)";
-    btnEdit.textContent = "💾 Listo";
-    btnEdit.style.background = "#D1FAE5";
-    btnDel.style.display = "inline-block";
-  } else {
-    // Guardar los cambios
-    const newName = inputName.value.trim();
-    const newPar = parseInt(inputPar.value) || 72;
-    if (!newName) { alert("El nombre del campo no puede estar vacío."); return; }
-    
-    const course = appState.courses.find(c => c.id === id);
-    if (course) {
-      course.name = newName;
-      course.totalPar = newPar;
-      await saveToStorage();
-    }
-    
-    // Volver a bloquear
-    inputName.disabled = true;
-    inputPar.disabled = true;
-    inputName.style.border = "none";
-    inputName.style.background = "transparent";
-    inputPar.style.border = "none";
-    inputPar.style.background = "transparent";
-    btnEdit.textContent = "✏️ Editar";
-    btnEdit.style.background = "var(--bg-card)";
-    btnDel.style.display = "none";
-    showStatusBanner("☁️ Campo actualizado");
-  }
-}
-
 async function deleteCourse(id) {
-  if(!confirm('¿Seguro que deseas eliminar este campo definitivamente?')) return;
+  if(!confirm('¿Seguro que deseas eliminar este campo?')) return;
   appState.courses = appState.courses.filter(c => c.id !== id);
   await saveToStorage();
+  cancelCourseEdit();
   renderCamposTab();
 }
 
@@ -526,15 +590,66 @@ async function saveDirectPlayer() {
   const hcp = parseFloat(document.getElementById('direct-p-hcp').value) || 0;
   if(!name) { alert('Introduce el nombre del jugador'); return; }
   
-  appState.savedPlayers.push({ code: generateCode('PLY'), name: name, hcp: hcp });
-  await saveToStorage();
+  if (editingPlayerCode) {
+    const playerIndex = appState.savedPlayers.findIndex(p => p.code === editingPlayerCode);
+    if (playerIndex > -1) {
+      appState.savedPlayers[playerIndex].name = name;
+      appState.savedPlayers[playerIndex].hcp = hcp;
+    }
+    editingPlayerCode = null;
+  } else {
+    appState.savedPlayers.push({ code: generateCode('PLY'), name: name, hcp: hcp });
+  }
   
-  document.getElementById('direct-p-name').value = '';
-  document.getElementById('direct-p-hcp').value = '0';
+  await saveToStorage();
+  cancelPlayerEdit();
   renderJugadoresTab();
 }
 
-// RENDER DE SECCIÓN ADMINISTRAR JUGADORES (CON EDICIÓN INTEGRADA)
+function editPlayer(code) {
+  const player = appState.savedPlayers.find(p => p.code === code);
+  if (!player) return;
+  
+  editingPlayerCode = code;
+  document.getElementById('player-form-title').textContent = "✏️ Editar Datos del Jugador";
+  document.getElementById('direct-p-name').value = player.name;
+  document.getElementById('direct-p-hcp').value = player.hcp;
+  
+  const actionsZone = document.getElementById('player-form-actions');
+  actionsZone.innerHTML = `
+    <div style="display:flex; gap:10px; width:100%;">
+      <button class="btn-primary" style="flex:1;" onclick="saveDirectPlayer()">Actualizar Jugador</button>
+      <button class="btn-secondary" style="flex:1;" onclick="cancelPlayerEdit()">Cancelar</button>
+    </div>
+    <button class="btn-danger" style="width:100%; margin-top:5px;" onclick="deletePlayer('${code}')">⚠️ Eliminar Jugador Permanentemente</button>
+  `;
+  
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function cancelPlayerEdit() {
+  editingPlayerCode = null;
+  document.getElementById('player-form-title').textContent = "Registrar Nuevo Jugador Fijo";
+  document.getElementById('direct-p-name').value = '';
+  document.getElementById('direct-p-hcp').value = '0';
+  
+  document.getElementById('player-form-actions').innerHTML = `
+    <button class="btn-primary" style="width:100%" onclick="saveDirectPlayer()">Registrar Jugador</button>
+  `;
+}
+
+// CORRECCIÓN: Nueva función añadida para eliminar un jugador
+async function deletePlayer(code) {
+  if (!confirm('¿Seguro que deseas eliminar permanentemente a este jugador de la base de datos?')) return;
+  
+  // Opcional: Validar si tiene juegos históricos para no corromper visualizaciones de podios viejos, o simplemente filtrarlo.
+  appState.savedPlayers = appState.savedPlayers.filter(p => p.code !== code);
+  
+  await saveToStorage();
+  cancelPlayerEdit();
+  renderJugadoresTab();
+}
+
 function renderJugadoresTab() {
   const list = document.getElementById('players-list-render');
   if(appState.savedPlayers.length === 0) {
@@ -542,70 +657,23 @@ function renderJugadoresTab() {
     return;
   }
   
-  list.innerHTML = appState.savedPlayers.map(p => 
-    `<div class="admin-item" id="item-player-${p.code}">
-      <div class="admin-inputs">
-        <input type="text" id="edit-pname-${p.code}" value="${p.name}" disabled style="font-weight:700; border:none; background:transparent; color:var(--text-main);">
-        <span style="font-size:12px; color:var(--text-muted); align-self:center; margin-left: 10px;">Hcp:</span>
-        <input type="number" id="edit-phcp-${p.code}" value="${p.hcp}" min="0" max="54" step="0.1" disabled style="width:70px; border:none; background:transparent; text-align:center; color:var(--text-main);">
-      </div>
-      <div class="admin-actions">
-        <button class="btn-secondary" style="padding:6px 12px; font-size:12px" id="btn-edit-player-${p.code}" onclick="toggleEditPlayer('${p.code}')">✏️ Editar</button>
-        <button class="btn-danger" style="padding:6px 12px; font-size:12px; display:none;" id="btn-del-player-${p.code}" onclick="deletePlayer('${p.code}')">🗑️ Eliminar</button>
-      </div>
-    </div>`
-  ).join('');
-}
+  const stats = calculatePlayerRecordsFromGames(appState.games);
 
-async function toggleEditPlayer(code) {
-  const inputName = document.getElementById(`edit-pname-${code}`);
-  const inputHcp = document.getElementById(`edit-phcp-${code}`);
-  const btnEdit = document.getElementById(`btn-edit-player-${code}`);
-  const btnDel = document.getElementById(`btn-del-player-${code}`);
-  
-  if (inputName.disabled) {
-    // Activar edición
-    inputName.disabled = false;
-    inputHcp.disabled = false;
-    inputName.style.border = "1px solid var(--border)";
-    inputName.style.background = "var(--bg-card)";
-    inputHcp.style.border = "1px solid var(--border)";
-    inputHcp.style.background = "var(--bg-card)";
-    btnEdit.textContent = "💾 Listo";
-    btnEdit.style.background = "#D1FAE5";
-    btnDel.style.display = "inline-block";
-  } else {
-    // Guardar los cambios
-    const newName = inputName.value.trim();
-    const newHcp = parseFloat(inputHcp.value) || 0;
-    if (!newName) { alert("El nombre del jugador no puede estar vacío."); return; }
-    
-    const player = appState.savedPlayers.find(p => p.code === code);
-    if (player) {
-      player.name = newName;
-      player.hcp = newHcp;
-      await saveToStorage();
-    }
-    
-    // Volver a bloquear
-    inputName.disabled = true;
-    inputHcp.disabled = true;
-    inputName.style.border = "none";
-    inputName.style.background = "transparent";
-    inputHcp.style.border = "none";
-    inputHcp.style.background = "transparent";
-    btnEdit.textContent = "✏️ Editar";
-    btnEdit.style.background = "var(--bg-card)";
-    btnDel.style.display = "none";
-    showStatusBanner("☁️ Perfil actualizado");
-  }
-}
-
-async function deletePlayer(code) {
-  if(!confirm('¿Deseas eliminar permanentemente a este jugador?')) return;
-  appState.savedPlayers = appState.savedPlayers.filter(p => p.code !== code);
-  await saveToStorage();
-  renderJugadoresTab();
+  list.innerHTML = appState.savedPlayers.map(p => {
+    const st = stats[p.code] || { 1: 0, 2: 0, 3: 0, otros: 0 };
+    return `<div class="admin-item">
+      <div>
+        <strong style="color:var(--text-main)">👤 ${p.name}</strong> <span style="font-size:12px">(Hcp ${p.hcp})</span>
+        <div class="player-medals">
+          <span>🥇 1ro: <b>${st[1]}</b></span> · 
+          <span>🥈 2do: <b>${st[2]}</b></span> · 
+          <span>🥉 3ro: <b>${st[3]}</b></span> · 
+          <span>🎖️ Otros: <b>${st.otros}</b></span>
+        </div>
+      </div>
+      <button class="btn-secondary" style="padding: 6px 12px; font-size:11px; font-weight:600;" onclick="editPlayer('${p.code}')">Editar</button>
+    </div>`;
+  }).join('');
 }
 
 function populateSetupSelectors() {
@@ -834,7 +902,13 @@ async function showResults() {
     results: finalResults
   };
   
-  appState.games.unshift(gameRecord);
+  const matchIndex = appState.games.findIndex(g => g.id === gameRecord.id || (g.date === gameRecord.date && g.name === gameRecord.name));
+  if (matchIndex > -1) {
+    appState.games[matchIndex] = gameRecord;
+  } else {
+    appState.games.unshift(gameRecord);
+  }
+  
   await saveToStorage();
   
   document.getElementById('scorecard-sec').classList.remove('active');
@@ -848,6 +922,12 @@ async function showResults() {
 function renderFinalDashboard(results, cardsId, tableId, parDelCampo) {
   const cards = document.getElementById(cardsId);
   const table = document.getElementById(tableId);
+  
+  if (!results || results.length === 0) {
+    cards.innerHTML = '';
+    table.innerHTML = '';
+    return;
+  }
   
   const w = results[0];
   const diffPar = w.total - parDelCampo;
@@ -873,20 +953,92 @@ function renderFinalDashboard(results, cardsId, tableId, parDelCampo) {
   table.innerHTML = html;
 }
 
+function clearHistoryFilters() {
+  document.getElementById('filter-start-date').value = '';
+  document.getElementById('filter-end-date').value = '';
+  renderHistoryList();
+}
+
+function renderFilteredRecordsTable(filteredGames) {
+  const tableEl = document.getElementById('history-records-table');
+  const stats = calculatePlayerRecordsFromGames(filteredGames);
+  
+  let activeRecords = Object.values(stats).filter(p => p.jugadas > 0);
+  
+  if (activeRecords.length === 0) {
+    tableEl.innerHTML = `<tbody><tr><td style="padding:15px; text-align:center; color:var(--text-muted);">Sin participaciones registradas en este rango.</td></tr></tbody>`;
+    return;
+  }
+  
+  activeRecords.sort((a, b) => b[1] - a[1] || b[2] - a[2] || b[3] - a[3]);
+  
+  let html = `
+    <thead>
+      <tr>
+        <th>Jugador</th>
+        <th style="text-align:center;">Rondas</th>
+        <th style="text-align:center;">🥇 1ro</th>
+        <th style="text-align:center;">🥈 2do</th>
+        <th style="text-align:center;">🥉 3ro</th>
+        <th style="text-align:center;">🎖️ Otros</th>
+      </tr>
+    </thead>
+    <tbody>
+  `;
+  
+  activeRecords.forEach(p => {
+    html += `
+      <tr>
+        <td><strong>👤 ${p.name}</strong></td>
+        <td style="text-align:center;"><b>${p.jugadas}</b></td>
+        <td style="text-align:center; color:#D97706; font-weight:700;">${p[1]}</td>
+        <td style="text-align:center; color:#475569; font-weight:700;">${p[2]}</td>
+        <td style="text-align:center; color:#B45309; font-weight:700;">${p[3]}</td>
+        <td style="text-align:center; color:var(--text-muted);">${p.otros}</td>
+      </tr>
+    `;
+  });
+  
+  html += '</tbody>';
+  tableEl.innerHTML = html;
+}
+
 function renderHistoryList() {
   const list = document.getElementById('history-list');
   document.getElementById('history-main-sec').style.display = 'block';
   document.getElementById('history-detail').classList.remove('active');
   
-  if(appState.games.length === 0) {
-    list.innerHTML = `<div class="empty-state">No hay partidas registradas en la nube.</div>`;
+  const startDateVal = document.getElementById('filter-start-date').value;
+  const endDateVal = document.getElementById('filter-end-date').value;
+  
+  let filteredGames = [...appState.games];
+  
+  if(startDateVal) {
+    filteredGames = filteredGames.filter(g => g.date >= startDateVal);
+  }
+  if(endDateVal) {
+    filteredGames = filteredGames.filter(g => g.date <= endDateVal);
+  }
+  
+  renderFilteredRecordsTable(filteredGames);
+  
+  if(filteredGames.length === 0) {
+    list.innerHTML = `<div class="empty-state">No se encontraron partidas en el rango de fechas seleccionado.</div>`;
     return;
   }
   
-  list.innerHTML = appState.games.map(g => {
-    const badges = (g.results || []).map((r, idx) => 
-      `<span class="hp-badge ${idx === 0 ? 'winner-badge' : ''}">${idx === 0 ? '🏆 ' : ''}${r.name}: ${r.total}g (Hcp ${r.hcpIdx || 0})</span>`
-    ).join('');
+  list.innerHTML = filteredGames.map(g => {
+    const sortedResults = [...(g.results || [])].sort((a,b) => a.total - b.total);
+    
+    const badges = sortedResults.map((r, idx) => {
+      let icon = '';
+      if(idx === 0) icon = '🥇 🏆 ';
+      else if(idx === 1) icon = '🥈 ';
+      else if(idx === 2) icon = '🥉 ';
+      else icon = '🎖️ ';
+      
+      return `<span class="hp-badge ${idx === 0 ? 'winner-badge' : ''}"><strong>#${idx + 1}</strong> ${icon}${r.name}: ${r.total}g</span>`;
+    }).join('');
     
     return `<div class="history-item" onclick="viewGameDetail('${g.id}')">
       <div class="history-header">
@@ -926,7 +1078,7 @@ function viewGameDetail(id) {
   let pOut=0, pIn=0;
   for(let h=0; h<c.holes; h++) {
     html += `<td class="par-r ${is18 && h === 8 ? 'hsep' : ''}">${c.pars[h]}</td>`;
-    h < 9 ? pOut += c.pars[h] : pIn += c.pars[h];
+    if(h < 9) pOut += c.pars[h]; else pIn += c.pars[h];
     if(is18 && h === 8) html += `<td class="par-r tc">${pOut}</td>`;
   }
   if(is18) html += `<td class="par-r tc">${pIn}</td>`;
@@ -954,7 +1106,8 @@ function viewGameDetail(id) {
   html += '</tbody>';
   table.innerHTML = html;
   
-  renderFinalDashboard(game.results, 'hd-cards', 'hd-res-table', c.totalPar);
+  const sortedResults = [...(game.results || [])].sort((a,b) => a.total - b.total);
+  renderFinalDashboard(sortedResults, 'hd-cards', 'hd-res-table', c.totalPar);
 }
 
 function closeHistoryDetail() {
@@ -983,11 +1136,17 @@ function backToSetup() {
   addPlayerRow();
 }
 
-async function clearAllHistory() {
-  if(!confirm('¿Seguro que deseas eliminar permanentemente todas las partidas guardadas de la nube?')) return;
-  appState.games = [];
-  await saveToStorage();
-  renderHistoryList();
+async function clearAllHistorySecure() {
+  const confirmWord = prompt('¡ADVERTENCIA DE SEGURIDAD!\nEsta acción eliminará de forma permanente todas las partidas guardadas en la nube.\n\nPara confirmar, escribe la palabra BORRAR en mayúsculas:');
+  
+  if (confirmWord === 'BORRAR') {
+    appState.games = [];
+    await saveToStorage();
+    renderHistoryList();
+    alert('El historial clínico de partidas ha sido vaciado por completo de la nube.');
+  } else {
+    alert('Acción cancelada. La palabra clave no coincide.');
+  }
 }
 
 async function main() {
