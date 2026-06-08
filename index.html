@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Golf Scorecard Manager</title>
+  <title>Golf Scorecard Manager Cloud</title>
   <style>
     :root {
       --primary: #1D9E75;
@@ -23,11 +23,10 @@
     
     body { background-color: var(--bg-app); color: var(--text-main); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
     
-    /* CONTROL DE ANCHO FIJO RESPONSIVO: El contenedor no se deforma ni se mueve horizontalmente */
     .app { max-width: 100%; width: 900px; margin: 1rem auto; padding: 0 1rem; }
     
     .header-zone { margin-bottom: 1.5rem; }
-    h1 { font-size: 24px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 10px; letter-spacing: -0.5px; }
+    h1 { font-size: 20px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 10px; letter-spacing: -0.5px; }
     
     .tabs { display: flex; gap: 4px; margin-bottom: 1.5rem; background: #E2E8F0; padding: 4px; border-radius: var(--radius-md); width: 100%; overflow-x: auto; }
     .tab-btn { flex: 1; text-align: center; padding: 10px 12px; font-size: 13px; font-weight: 600; cursor: pointer; background: transparent; border: none; color: var(--text-muted); border-radius: calc(var(--radius-md) - 2px); transition: all 0.2s ease; white-space: nowrap; }
@@ -45,7 +44,6 @@
     .field { display: flex; flex-direction: column; gap: 6px; flex: 1; width: 100%; }
     .field label { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
     
-    /* OPTIMIZACIÓN CELULARES: Selectores e Inputs estilizados con padding correcto para evitar recortes */
     input[type="text"], input[type="date"], select, input[type="number"] { font-size: 15px; padding: 11px 10px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-card); color: var(--text-main); width: 100%; transition: all 0.15s ease; outline: none; -webkit-appearance: none; appearance: none; }
     select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%2364748B' d='M0 0l5 5 5-5z'/></svg>"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 30px; }
     input[type="text"]:focus, select:focus, input[type="number"]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.12); }
@@ -59,7 +57,6 @@
     .btn-icon { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 20px; padding: 6px 10px; border-radius: var(--radius-md); }
     .btn-icon:hover { color: #E11D48; background: #FFF1F2; }
 
-    /* FILAS DE PASAJEROS COMPACTAS PARA MÓVIL */
     .player-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; background: var(--bg-app); padding: 8px; border-radius: var(--radius-md); border: 1px solid var(--border); }
     .player-row select { flex: 1; min-width: 0; text-overflow: ellipsis; font-size: 13px; padding: 8px; }
     .player-row .p-inline-name { flex: 1; min-width: 0; font-size: 13px; padding: 8px; }
@@ -71,7 +68,6 @@
     .par-field label { font-size: 10px; font-weight: 600; color: var(--text-muted); }
     .par-field input { width: 100%; text-align: center; padding: 6px 2px; font-size: 12px; font-weight: 600; -webkit-appearance: textfield; appearance: textfield; }
 
-    /* ANCHO FIJO DE TABLA CON SCROLL INDEPENDIENTE (Evita el movimiento de la pantalla del celular) */
     .scorecard-wrap { overflow-x: auto; margin-bottom: 1.5rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); width: 100%; -webkit-overflow-scrolling: touch; }
     table.sc { width: 840px; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
     table.sc th { background: #F1F5F9; padding: 10px 4px; text-align: center; font-weight: 600; border-bottom: 1px solid var(--border); color: var(--text-muted); font-size: 11px; text-transform: uppercase; }
@@ -123,9 +119,10 @@
     .li { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-muted); }
     .ld { width: 12px; height: 12px; border-radius: 3px; }
 
-    /* LISTADO DE ADMINISTACION DE JUGADORES Y CAMPOS */
     .admin-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--border); background: var(--bg-card); }
     .admin-item:last-child { border-bottom: none; }
+
+    .loading-banner { background: #E0F2FE; color: #0369A1; padding: 8px; text-align: center; font-size: 12px; font-weight: 600; border-radius: 8px; margin-bottom: 10px; display: none; }
 
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(2px); }
@@ -137,7 +134,8 @@
 
 <div class="app">
   <div class="header-zone">
-    <h1>⛳ Golf Scorecard Manager</h1>
+    <h1>⛳ Golf Scorecard Manager Cloud</h1>
+    <div id="cloud-status" class="loading-banner">Sincronizando con la nube...</div>
   </div>
 
   <div class="tabs">
@@ -203,7 +201,10 @@
           <div class="section-title">Resultados Oficiales</div>
           <div style="font-size:12px; color:var(--text-muted)" id="res-meta"></div>
         </div>
-        <button class="btn-primary" style="margin-top:8px" onclick="backToSetup()">Nueva partida</button>
+        <div class="actions" style="display:flex; gap:6px; width:100%; margin-top:8px;">
+          <button class="btn-secondary" style="flex:1" onclick="backToScorecard()">← Tarjeta</button>
+          <button class="btn-primary" style="flex:1" onclick="backToSetup()">Nueva partida</button>
+        </div>
       </div>
       <div class="results-grid" id="res-cards"></div>
       <div class="rt-wrap"><table class="rt" id="res-table"></table></div>
@@ -290,7 +291,8 @@
 </div>
 
 <script>
-const STORAGE_KEY = 'golf_app_data_v2';
+// URL de tu proyecto real de Firebase Realtime Database
+const FIREBASE_URL = "https://golf-scorecard-rd-default-rtdb.firebaseio.com/"; 
 
 let appState = {
   savedPlayers: [],
@@ -312,35 +314,59 @@ function generateCode(prefix) {
   return prefix + '-' + Math.random().toString(36).substr(2, 5).toUpperCase();
 }
 
-const storageMock = {
-  get: async (key) => ({ value: localStorage.getItem(key) }),
-  set: async (key, val) => localStorage.setItem(key, val)
-};
-const storeProvider = (window.storage && window.storage.get) ? window.storage : storageMock;
+function showStatusBanner(text, time = 2000) {
+  const banner = document.getElementById('cloud-status');
+  banner.textContent = text;
+  banner.style.display = 'block';
+  setTimeout(() => { banner.style.display = 'none'; }, time);
+}
 
+// Cargar datos unificados desde Firebase Cloud
 async function loadFromStorage() {
   try {
-    const r = await storeProvider.get(STORAGE_KEY);
-    if(r && r.value) {
-      appState = JSON.parse(r.value);
+    const response = await fetch(`${FIREBASE_URL}golf_data.json`);
+    const data = await response.json();
+    if (data) {
+      appState = data;
     } else {
       setDefaultData();
+      await saveToStorage();
     }
   } catch(e) {
+    console.error("Error conectando a la nube, usando base local por defecto", e);
     setDefaultData();
   }
   ensureDataStructures();
+}
+
+// Guardar datos unificados en Firebase Cloud
+async function saveToStorage() {
+  ensureDataStructures();
+  try {
+    document.getElementById('cloud-status').style.display = 'block';
+    document.getElementById('cloud-status').textContent = "Sincronizando con la nube...";
+    
+    await fetch(`${FIREBASE_URL}golf_data.json`, {
+      method: 'PUT',
+      body: JSON.stringify(appState),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    showStatusBanner("☁️ Sincronizado con éxito");
+  } catch(e) {
+    console.error("Error al guardar en la nube", e);
+    showStatusBanner("❌ Error de conexión");
+  }
 }
 
 function setDefaultData() {
   appState = {
     savedPlayers: [
       { code: 'PLY-JUAN1', name: 'Juan Pérez', hcp: 5 },
-      { code: 'PLY-CARL2', name: 'Carlos Gomez', hcp: 12 },
-      { code: 'PLY-JORGE', name: 'Jorge Popoteur', hcp: 0 }
+      { code: 'PLY-CARL2', name: 'Carlos Gomez', hcp: 12 }
     ],
     courses: [
-      { id: 'CRS-DEFAULT', name: 'Santiago Links (Predeterminado)', holes: 18, totalPar: 72, pars: [4,4,3,4,5,3,4,5,4,4,4,3,4,5,3,4,5,4] }
+      { id: 'CRS-DEFAULT', name: 'Santiago Links', holes: 18, totalPar: 72, pars: [4,4,3,4,5,3,4,5,4,4,4,3,4,5,3,4,5,4] }
     ],
     games: []
   };
@@ -350,15 +376,6 @@ function ensureDataStructures() {
   if(!appState.savedPlayers) appState.savedPlayers = [];
   if(!appState.courses) appState.courses = [];
   if(!appState.games) appState.games = [];
-}
-
-async function saveToStorage() {
-  ensureDataStructures();
-  try {
-    await storeProvider.set(STORAGE_KEY, JSON.stringify(appState));
-  } catch(e) {
-    console.error("Error writing to storage", e);
-  }
 }
 
 function showTab(tab) {
@@ -419,7 +436,7 @@ async function saveNewCourse() {
     holePars.push(val);
   });
   
-  if(!valid) { alert('Por favor, ingresa pares válidos entre 3 y 5 en cada hoyo.'); return; }
+  if(!valid) { alert('Por favor, ingresa pares válidos entre 3 y 5.'); return; }
   
   const newCourse = { id: generateCode('CRS'), name: name, holes: holes, totalPar: totalPar, pars: holePars };
   appState.courses.push(newCourse);
@@ -427,10 +444,8 @@ async function saveNewCourse() {
   
   document.getElementById('course-name').value = '';
   renderCamposTab();
-  alert('Campo de Golf guardado exitosamente.');
 }
 
-/* FUNCIÓN DE RENDERIZACIÓN DE CAMPOS CON OPCIÓN DE ELIMINAR */
 function renderCamposTab() {
   generateParsForm();
   const list = document.getElementById('courses-list-render');
@@ -442,7 +457,6 @@ function renderCamposTab() {
     `<div class="admin-item">
       <div>
         <strong style="color: var(--text-main)">⛳ ${c.name}</strong> <span style="font-size:12px">(${c.holes}H, Par ${c.totalPar})</span>
-        <small style="color:var(--text-muted); display:block; margin-top:2px; font-size:11px;">Pares: ${c.pars.join(', ')}</small>
       </div>
       <button class="btn-danger" style="padding: 6px 10px; font-size:11px" onclick="deleteCourse('${c.id}')">Eliminar</button>
     </div>`
@@ -450,13 +464,12 @@ function renderCamposTab() {
 }
 
 async function deleteCourse(id) {
-  if(!confirm('¿Seguro que deseas eliminar este campo de golf?')) return;
+  if(!confirm('¿Seguro que deseas eliminar este campo?')) return;
   appState.courses = appState.courses.filter(c => c.id !== id);
   await saveToStorage();
   renderCamposTab();
 }
 
-/* FUNCCIÓN PARA REGISTRAR JUGADORES DIRECTAMENTE */
 async function saveDirectPlayer() {
   const name = document.getElementById('direct-p-name').value.trim();
   const hcp = parseFloat(document.getElementById('direct-p-hcp').value) || 0;
@@ -470,7 +483,6 @@ async function saveDirectPlayer() {
   renderJugadoresTab();
 }
 
-/* RENDERIZACIÓN DE JUGADORES CON BOTÓN PARA ELIMINAR JUGADORES */
 function renderJugadoresTab() {
   const list = document.getElementById('players-list-render');
   if(appState.savedPlayers.length === 0) {
@@ -480,8 +492,7 @@ function renderJugadoresTab() {
   list.innerHTML = appState.savedPlayers.map(p => 
     `<div class="admin-item">
       <div>
-        <strong style="color:var(--text-main)">👤 ${p.name}</strong>
-        <small style="color:var(--text-muted); display:block; font-size:11px;">Hcp Índice: ${p.hcp}</small>
+        <strong style="color:var(--text-main)">👤 ${p.name}</strong> <span style="font-size:12px">(Hcp ${p.hcp})</span>
       </div>
       <button class="btn-danger" style="padding: 6px 10px; font-size:11px" onclick="deletePlayer('${p.code}')">Eliminar</button>
     </div>`
@@ -508,7 +519,6 @@ function addPlayerRow() {
   wrapper.className = 'player-row';
   wrapper.id = `pf-row-${idx}`;
   
-  /* REESTRUCTURACIÓN DEL SELECTOR PARA VISUALIZACIÓN COMPLETA EN CELULAR */
   let optionsHtml = `<option value="">-- Seleccionar Jugador --</option>`;
   appState.savedPlayers.forEach(p => {
     optionsHtml += `<option value="${p.code}">${p.name} (Hcp ${p.hcp})</option>`;
@@ -517,7 +527,7 @@ function addPlayerRow() {
   
   wrapper.innerHTML = `
     <select id="sel-pcode-${idx}" onchange="handlePlayerSelectChange(${idx})">${optionsHtml}</select>
-    <input type="text" class="p-inline-name" id="inline-name-${idx}" placeholder="Nombre...">
+    <input type="text" class="p-inline-name" id="inline-name-${idx}" style="display:none;" placeholder="Nombre...">
     <span class="lbl">Hcp:</span>
     <input type="number" id="inline-hcp-${idx}" min="0" max="54" step="0.1" value="0">
     <button class="btn-icon" style="padding:2px 6px;" onclick="removeSetupPlayerRow(${idx})">×</button>
@@ -557,7 +567,7 @@ function removeSetupPlayerRow(idx) {
 async function startGame() {
   const selectedCourseId = document.getElementById('match-course-select').value;
   const course = appState.courses.find(c => c.id === selectedCourseId);
-  if(!course) { alert('Por favor crea o selecciona un campo válido primero'); return; }
+  if(!course) { alert('Selecciona o crea un campo de golf primero'); return; }
   
   let participants = [];
   let dynamicPlayersAdded = false;
@@ -573,9 +583,9 @@ async function startGame() {
     let pName = '';
     let pHcp = parseFloat(inputHcp.value) || 0;
     
-    if(select.style.display === 'block' || pCode === "NEW_OPTION" || (!pCode && inputName.style.display === 'block')) {
+    if(select.style.display === 'none' || pCode === "NEW_OPTION") {
       pName = inputName.value.trim();
-      if(!pName) { alert('Por favor, introduce el nombre del jugador nuevo'); return; }
+      if(!pName) continue;
       pCode = generateCode('PLY');
       appState.savedPlayers.push({ code: pCode, name: pName, hcp: pHcp });
       dynamicPlayersAdded = true;
@@ -589,7 +599,7 @@ async function startGame() {
     participants.push({ code: pCode, name: pName, hcp: pHcp });
   }
   
-  if(participants.length === 0) { alert('Añade por lo menos un jugador para arrancar.'); return; }
+  if(participants.length === 0) { alert('Añade por lo menos un jugador.'); return; }
   if(dynamicPlayersAdded) { await saveToStorage(); }
   
   activeGame.players = participants;
@@ -604,7 +614,7 @@ async function startGame() {
   document.getElementById('scorecard-sec').classList.add('active');
   
   document.getElementById('sc-title').textContent = activeGame.matchName;
-  document.getElementById('sc-meta').textContent = `Campo: ${course.name} · ${course.holes} Hoyos · Par ${course.totalPar}`;
+  document.getElementById('sc-meta').textContent = `Campo: ${course.name} · ${course.holes} Hoyos`;
   
   buildScorecardMatrix();
 }
@@ -696,7 +706,7 @@ async function showResults() {
     return { code: p.code, name: p.name, total: totalStrokes, hcpNeto: hcpNeto, hcpIdx: p.hcp };
   }).filter(r => r.total > 0).sort((a,b) => a.total - b.total);
 
-  if(finalResults.length === 0) { alert('Escribe puntajes antes de calcular resultados.'); return; }
+  if(finalResults.length === 0) { alert('Escribe puntajes antes de finalizar.'); return; }
   
   const gameRecord = {
     id: `GAME-${Date.now()}`,
@@ -714,13 +724,22 @@ async function showResults() {
     results: finalResults
   };
   
-  appState.games.unshift(gameRecord);
+  // Guardar en la lista global de partidas antes de sincronizar
+  const matchIndex = appState.games.findIndex(g => g.id === gameRecord.id || (g.date === gameRecord.date && g.name === gameRecord.name));
+  if (matchIndex > -1) {
+    appState.games[matchIndex] = gameRecord;
+  } else {
+    appState.games.unshift(gameRecord);
+  }
+  
   await saveToStorage();
   
   document.getElementById('scorecard-sec').classList.remove('active');
+  document.getElementById('results-sec').add('active');
+  document.getElementById('tab-nueva').querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('results-sec').classList.add('active');
   
-  document.getElementById('res-meta').textContent = `${gameRecord.date} · ${gameRecord.name} · Campo: ${gameRecord.course.name}`;
+  document.getElementById('res-meta').textContent = `${gameRecord.date} · ${gameRecord.name}`;
   renderFinalDashboard(finalResults, 'res-cards', 'res-table', gameRecord.course.totalPar);
 }
 
@@ -757,7 +776,7 @@ function renderHistoryList() {
   document.getElementById('history-detail').classList.remove('active');
   
   if(appState.games.length === 0) {
-    list.innerHTML = `<div class="empty-state">No se registran partidas en el historial todavía.</div>`;
+    list.innerHTML = `<div class="empty-state">No hay partidas registradas en la nube.</div>`;
     return;
   }
   
@@ -770,9 +789,9 @@ function renderHistoryList() {
       <div class="history-header">
         <div>
           <div class="history-date">${g.date} — <strong>${g.name}</strong></div>
-          <div class="history-meta">Campo: ${g.course ? g.course.name : 'N/A'} (${g.course ? g.course.holes : 18}H, Par ${g.course ? g.course.totalPar : 72})</div>
+          <div class="history-meta">Campo: ${g.course ? g.course.name : 'N/A'}</div>
         </div>
-        <span style="color:var(--primary); font-size:12px; font-weight:600; white-space:nowrap;">Ver Tarjeta →</span>
+        <span style="color:var(--primary); font-size:12px; font-weight:600;">Ver Tarjeta →</span>
       </div>
       <div class="history-players">${badges}</div>
     </div>`;
@@ -840,6 +859,11 @@ function closeHistoryDetail() {
   document.getElementById('history-main-sec').style.display = 'block';
 }
 
+function backToScorecard() {
+  document.getElementById('results-sec').classList.remove('active');
+  document.getElementById('scorecard-sec').classList.add('active');
+}
+
 function backToSetup() {
   document.getElementById('scorecard-sec').classList.remove('active');
   document.getElementById('results-sec').classList.remove('active');
@@ -857,7 +881,7 @@ function backToSetup() {
 }
 
 async function clearAllHistory() {
-  if(!confirm('¿Seguro que deseas eliminar permanentemente todas las partidas guardadas?')) return;
+  if(!confirm('¿Seguro que deseas eliminar permanentemente todas las partidas guardadas de la nube?')) return;
   appState.games = [];
   await saveToStorage();
   renderHistoryList();
