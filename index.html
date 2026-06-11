@@ -125,8 +125,6 @@
 
     .loading-banner { background: #E0F2FE; color: #0369A1; padding: 8px; text-align: center; font-size: 12px; font-weight: 600; border-radius: 8px; margin-bottom: 10px; display: none; }
 
-    .danger-zone-card { background: #FFF5F5; border: 1px dashed #FEB2B2; border-radius: var(--radius-lg); padding: 1.25rem; margin-top: 2rem; }
-
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(2px); }
       to { opacity: 1; transform: translateY(0); }
@@ -274,12 +272,6 @@
       <div class="card-title">Lista de Jugadores Registrados e Historial de Podios</div>
       <div id="players-list-render" style="border: 1px solid var(--border); border-radius: var(--radius-md); overflow:hidden;"></div>
     </div>
-
-    <div class="danger-zone-card">
-      <div style="font-size: 13px; font-weight: 700; color: #9B1C1C; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">⚠️ Zona de Control Destructivo</div>
-      <p style="font-size: 12px; color: #7F1D1D; margin-bottom: 12px; line-height: 1.4;">Esta acción borrará todas las partidas almacenadas en la base de datos de manera irreversible. Requiere confirmación manual por palabra clave.</p>
-      <button class="btn-danger" style="width: 100%; border-color: #FEB2B2;" onclick="clearAllHistorySecure()">Borrar Historial Completo de la Nube</button>
-    </div>
   </div>
 
   <div id="tab-historial" class="section">
@@ -317,8 +309,15 @@
 
     <div id="history-detail" class="section">
       <div class="section-hdr">
-        <div class="section-title" id="hd-title"></div>
-        <button class="btn-secondary" style="width:100%; margin-top:6px;" onclick="closeHistoryDetail()">← Volver al Historial</button>
+        <div>
+          <div class="section-title" id="hd-title"></div>
+          <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">Modo Edición Clínico habilitado. Puedes cambiar golpes directamente en la tarjeta.</div>
+        </div>
+        <div class="actions" style="display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;">
+          <button class="btn-primary" id="btn-save-edited-game" onclick="saveHistoryGameChanges()">💾 Guardar Cambios en Tarjeta</button>
+          <button class="btn-danger" id="btn-delete-single-game" onclick="deleteSingleGameFromHistory()">🗑️ Eliminar Partida</button>
+          <button class="btn-secondary" onclick="closeHistoryDetail()">← Volver al Historial</button>
+        </div>
       </div>
       <div class="scorecard-wrap"><table class="sc" id="hd-table"></table></div>
       <div class="results-grid" id="hd-cards" style="margin-top:1.5rem"></div>
@@ -347,6 +346,7 @@ let activeGame = {
 let currentFormRows = [];
 let editingCourseId = null;
 let editingPlayerCode = null;
+let selectedHistoryGameId = null;
 
 function generateCode(prefix) {
   return prefix + '-' + Math.random().toString(36).substr(2, 5).toUpperCase();
@@ -638,13 +638,9 @@ function cancelPlayerEdit() {
   `;
 }
 
-// CORRECCIÓN: Nueva función añadida para eliminar un jugador
 async function deletePlayer(code) {
   if (!confirm('¿Seguro que deseas eliminar permanentemente a este jugador de la base de datos?')) return;
-  
-  // Opcional: Validar si tiene juegos históricos para no corromper visualizaciones de podios viejos, o simplemente filtrarlo.
   appState.savedPlayers = appState.savedPlayers.filter(p => p.code !== code);
-  
   await saveToStorage();
   cancelPlayerEdit();
   renderJugadoresTab();
@@ -663,7 +659,7 @@ function renderJugadoresTab() {
     const st = stats[p.code] || { 1: 0, 2: 0, 3: 0, otros: 0 };
     return `<div class="admin-item">
       <div>
-        <strong style="color:var(--text-main)">👤 ${p.name}</strong> <span style="font-size:12px">(Hcp ${p.hcp})</span>
+        <strong style="color:var(--text-main)">👤 ${p.name}</strong> <span style="font-size:12px">(Hcp Index Actual: <b>${p.hcp}</b>)</span>
         <div class="player-medals">
           <span>🥇 1ro: <b>${st[1]}</b></span> · 
           <span>🥈 2do: <b>${st[2]}</b></span> · 
@@ -870,18 +866,29 @@ function recalcLiveMatrixTotals() {
 }
 
 async function showResults() {
-  let finalResults = activeGame.players.map(p => {
+  activeGame.players.forEach(p => {
     const totalStrokes = activeGame.scores[p.code].reduce((a, b) => a + (parseInt(b) || 0), 0);
-    const hcpNeto = totalStrokes > 0 ? +((totalStrokes - p.hcp - activeGame.course.totalPar) * 0.96).toFixed(1) : null;
-    
-    if (hcpNeto !== null) {
+    if(totalStrokes > 0) {
+      const hcpNeto = +((totalStrokes - p.hcp - activeGame.course.totalPar) * 0.96).toFixed(1);
       const globalPlayer = appState.savedPlayers.find(sp => sp.code === p.code);
       if (globalPlayer) {
-        globalPlayer.hcp = hcpNeto; 
+        globalPlayer.hcp = hcpNeto;
       }
     }
+  });
+
+  let finalResults = activeGame.players.map(p => {
+    const totalStrokes = activeGame.scores[p.code].reduce((a, b) => a + (parseInt(b) || 0), 0);
+    const globalPlayer = appState.savedPlayers.find(sp => sp.code === p.code);
+    const currentHcpNeto = globalPlayer ? globalPlayer.hcp : p.hcp;
     
-    return { code: p.code, name: p.name, total: totalStrokes, hcpNeto: hcpNeto, hcpIdx: p.hcp };
+    return { 
+      code: p.code, 
+      name: p.name, 
+      total: totalStrokes, 
+      hcpNeto: currentHcpNeto, 
+      hcpIdx: p.hcp 
+    };
   }).filter(r => r.total > 0).sort((a,b) => a.total - b.total);
 
   if(finalResults.length === 0) { alert('Escribe puntajes antes de finalizar.'); return; }
@@ -897,7 +904,10 @@ async function showResults() {
       totalPar: activeGame.course.totalPar,
       pars: [...activeGame.course.pars]
     },
-    players: activeGame.players.map(p => ({ code: p.code, name: p.name, hcp: p.hcp })),
+    players: activeGame.players.map(p => {
+      const gp = appState.savedPlayers.find(sp => sp.code === p.code);
+      return { code: p.code, name: p.name, hcp: gp ? gp.hcp : p.hcp };
+    }),
     scores: JSON.parse(JSON.stringify(activeGame.scores)),
     results: finalResults
   };
@@ -936,7 +946,7 @@ function renderFinalDashboard(results, cardsId, tableId, parDelCampo) {
     <div class="mc"><div class="ml">Mejor Score Neto</div><div class="mv">${w.total}</div><div class="ms">${diffPar >= 0 ? '+' : ''}${diffPar} vs Par</div></div>
   `;
   
-  let html = `<thead><tr><th>Pos.</th><th>Jugador</th><th>Hcp Index</th><th>Golpes</th><th>vs Par</th><th>Nuevo Hándicap (Neto)</th></tr></thead><tbody>`;
+  let html = `<thead><tr><th>Pos.</th><th>Jugador</th><th>Hcp Inicial</th><th>Golpes</th><th>vs Par</th><th>Nuevo Hándicap Index</th></tr></thead><tbody>`;
   results.forEach((r, i) => {
     const diff = r.total - parDelCampo;
     const diffStr = diff === 0 ? 'E' : diff > 0 ? `+${diff}` : `${diff}`;
@@ -1046,7 +1056,7 @@ function renderHistoryList() {
           <div class="history-date">${g.date} — <strong>${g.name}</strong></div>
           <div class="history-meta">Campo: ${g.course ? g.course.name : 'N/A'}</div>
         </div>
-        <span style="color:var(--primary); font-size:12px; font-weight:600;">Ver Tarjeta →</span>
+        <span style="color:var(--primary); font-size:12px; font-weight:600;">⚙️ Ver / Editar Tarjeta →</span>
       </div>
       <div class="history-players">${badges}</div>
     </div>`;
@@ -1054,6 +1064,7 @@ function renderHistoryList() {
 }
 
 function viewGameDetail(id) {
+  selectedHistoryGameId = id;
   const game = appState.games.find(g => g.id === id);
   if(!game) return;
   
@@ -1086,33 +1097,130 @@ function viewGameDetail(id) {
   
   game.players.forEach(p => {
     const pScores = game.scores[p.code] || [];
-    html += `<tr><td class="pnc">${p.name}<span class="c-info">Hcp ${p.hcp}</span></td>`;
-    let oSum = 0, iSum = 0, tSum = 0;
+    html += `<tr><td class="pnc">${p.name}<span class="c-info">Hcp Inicial: ${p.hcp}</span></td>`;
     
     for(let h=0; h<c.holes; h++) {
-      const v = parseInt(pScores[h]) || 0;
-      tSum += v;
-      if(h < 9) oSum += v; else iSum += v;
-      const diff = v - c.pars[h];
-      const cls = !v ? '' : diff <= -2 ? 'c-eagle' : diff === -1 ? 'c-birdie' : diff === 1 ? 'c-bogey' : diff >= 2 ? 'c-dbl' : '';
-      
-      html += `<td class="${is18 && h === 8 ? 'hsep' : ''} ${cls}">${v || '—'}</td>`;
-      if(is18 && h === 8) html += `<td class="tc">${oSum || '—'}</td>`;
+      const v = pScores[h] || '';
+      html += `<td class="${is18 && h === 8 ? 'hsep' : ''}">
+        <input class="si h-edited-score" type="number" min="1" max="20" value="${v}" data-pcode="${p.code}" data-hole="${h}" oninput="recalcHistoryLiveTotals()">
+      </td>`;
+      if(is18 && h === 8) html += `<td class="tc" id="hd-out-${p.code}">0</td>`;
     }
-    if(is18) html += `<td class="tc">${iSum || '—'}</td>`;
-    html += `<td class="tc"><strong>${tSum || '—'}</strong></td></tr>`;
+    if(is18) html += `<td class="tc" id="hd-in-${p.code}">0</td>`;
+    html += `<td class="tc"><strong id="hd-tot-${p.code}">0</strong></td></tr>`;
   });
   
   html += '</tbody>';
   table.innerHTML = html;
   
-  const sortedResults = [...(game.results || [])].sort((a,b) => a.total - b.total);
-  renderFinalDashboard(sortedResults, 'hd-cards', 'hd-res-table', c.totalPar);
+  recalcHistoryLiveTotals();
+}
+
+function recalcHistoryLiveTotals() {
+  const game = appState.games.find(g => g.id === selectedHistoryGameId);
+  if(!game) return;
+  
+  const c = game.course;
+  const is18 = c.holes === 18;
+  
+  let tempScores = {};
+  game.players.forEach(p => { tempScores[p.code] = []; });
+  
+  document.querySelectorAll('.h-edited-score').forEach(input => {
+    const pcode = input.dataset.pcode;
+    const hole = parseInt(input.dataset.hole);
+    if(tempScores[pcode]) {
+      tempScores[pcode][hole] = input.value ? parseInt(input.value) : '';
+    }
+  });
+
+  game.players.forEach(p => {
+    const sArr = tempScores[p.code] || [];
+    let outSum = 0, inSum = 0, totSum = 0;
+    
+    for(let h=0; h<c.holes; h++) {
+      let val = parseInt(sArr[h]) || 0;
+      totSum += val;
+      if(h < 9) outSum += val; else inSum += val;
+      
+      const inputEl = document.querySelector(`.h-edited-score[data-pcode="${p.code}"][data-hole="${h}"]`);
+      if(inputEl) {
+        const cell = inputEl.parentElement;
+        cell.className = (is18 && h === 8) ? 'hsep' : '';
+        if(val) {
+          const diff = val - c.pars[h];
+          if(diff <= -2) cell.classList.add('c-eagle');
+          else if(diff === -1) cell.classList.add('c-birdie');
+          else if(diff === 1) cell.classList.add('c-bogey');
+          else if(diff >= 2) cell.classList.add('c-dbl');
+        }
+      }
+    }
+    
+    const outCell = document.getElementById(`hd-out-${p.code}`);
+    const inCell = document.getElementById(`hd-in-${p.code}`);
+    const totCell = document.getElementById(`hd-tot-${p.code}`);
+    
+    if(outCell) outCell.textContent = outSum || '';
+    if(inCell) inCell.textContent = inSum || '';
+    if(totCell) totCell.textContent = totSum || '';
+  });
+
+  let mockResults = game.players.map(p => {
+    let strokes = 0;
+    document.querySelectorAll(`.h-edited-score[data-pcode="${p.code}"]`).forEach(i => { strokes += (parseInt(i.value) || 0); });
+    const hcpNeto = strokes > 0 ? +((strokes - p.hcp - c.totalPar) * 0.96).toFixed(1) : 0;
+    return { code: p.code, name: p.name, total: strokes, hcpNeto: hcpNeto, hcpIdx: p.hcp };
+  }).filter(r => r.total > 0).sort((a,b) => a.total - b.total);
+
+  renderFinalDashboard(mockResults, 'hd-cards', 'hd-res-table', c.totalPar);
+}
+
+async function saveHistoryGameChanges() {
+  const gameIndex = appState.games.findIndex(g => g.id === selectedHistoryGameId);
+  if(gameIndex === -1) return;
+  
+  let game = appState.games[gameIndex];
+  
+  document.querySelectorAll('.h-edited-score').forEach(input => {
+    const pcode = input.dataset.pcode;
+    const hole = parseInt(input.dataset.hole);
+    game.scores[pcode][hole] = input.value ? parseInt(input.value) : '';
+  });
+  
+  game.results = game.players.map(p => {
+    const totalStrokes = game.scores[p.code].reduce((a, b) => a + (parseInt(b) || 0), 0);
+    const hcpNeto = totalStrokes > 0 ? +((totalStrokes - p.hcp - game.course.totalPar) * 0.96).toFixed(1) : 0;
+    
+    const globalPlayer = appState.savedPlayers.find(sp => sp.code === p.code);
+    if (globalPlayer && totalStrokes > 0) {
+      globalPlayer.hcp = hcpNeto;
+    }
+    
+    return { code: p.code, name: p.name, total: totalStrokes, hcpNeto: hcpNeto, hcpIdx: p.hcp };
+  }).filter(r => r.total > 0).sort((a,b) => a.total - b.total);
+  
+  await saveToStorage();
+  alert('¡Tarjeta de puntuación e historial recalculado actualizados con éxito en la nube!');
+  closeHistoryDetail();
+  renderHistoryList();
+}
+
+async function deleteSingleGameFromHistory() {
+  if(!confirm('¿Seguro que deseas eliminar esta partida permanentemente del historial clínico?')) return;
+  
+  appState.games = appState.games.filter(g => g.id !== selectedHistoryGameId);
+  await saveToStorage();
+  
+  alert('Partida eliminada.');
+  closeHistoryDetail();
+  renderHistoryList();
 }
 
 function closeHistoryDetail() {
   document.getElementById('history-detail').classList.remove('active');
   document.getElementById('history-main-sec').style.display = 'block';
+  selectedHistoryGameId = null;
 }
 
 function backToScorecard() {
@@ -1134,19 +1242,6 @@ function backToSetup() {
   populateSetupSelectors();
   addPlayerRow();
   addPlayerRow();
-}
-
-async function clearAllHistorySecure() {
-  const confirmWord = prompt('¡ADVERTENCIA DE SEGURIDAD!\nEsta acción eliminará de forma permanente todas las partidas guardadas en la nube.\n\nPara confirmar, escribe la palabra BORRAR en mayúsculas:');
-  
-  if (confirmWord === 'BORRAR') {
-    appState.games = [];
-    await saveToStorage();
-    renderHistoryList();
-    alert('El historial clínico de partidas ha sido vaciado por completo de la nube.');
-  } else {
-    alert('Acción cancelada. La palabra clave no coincide.');
-  }
 }
 
 async function main() {
