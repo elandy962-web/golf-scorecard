@@ -75,7 +75,7 @@
     table.sc td { padding: 6px 2px; text-align: center; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); vertical-align: middle; }
     table.sc tr:last-child td { border-bottom: none; }
     table.sc td:last-child { border-right: none; }
-    table.sc td.pnc { text-align: left; padding-left: 12px; font-weight: 600; font-size: 12px; background: #F8FAFC; color: var(--text-main); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    table.sc td.pnc text-align: left; padding-left: 12px; font-weight: 600; font-size: 12px; background: #F8FAFC; color: var(--text-main); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     table.sc td.pnc span.c-info { font-size: 10px; font-weight: 400; color: var(--text-muted); display: block; margin-top: 1px; }
     table.sc td.par-r { background: #F1F5F9; font-weight: 600; color: var(--text-main); padding: 10px 2px; }
     table.sc .tc { background: #E2E8F0; font-weight: 700; color: var(--text-main); width: 45px; }
@@ -877,15 +877,21 @@ function recalcLiveMatrixTotals() {
 
 async function showResults() {
   let finalResults = activeGame.players.map(p => {
-    const pScores = activeGame.scores[p.code] || [];
-    const playedHolesCount = pScores.filter(b => b !== '' && parseInt(b) > 0).length;
-    const totalStrokes = pScores.reduce((a, b) => a + (parseInt(b) || 0), 0);
+    const totalStrokes = activeGame.scores[p.code].reduce((a, b) => a + (parseInt(b) || 0), 0);
     
     let hcpNeto = null;
-    if (totalStrokes > 0 && playedHolesCount >= activeGame.course.holes) {
-      hcpNeto = +((totalStrokes - p.hcp - activeGame.course.totalPar) * 0.96).toFixed(1);
+    if (totalStrokes > 0) {
+      // SI EL CAMPO ES DE 9 HOYOS: Escalamos a 18 para comparar de manera equitativa con su Handicap Index original
+      if (activeGame.course.holes === 9) {
+        const golpesProyectados18 = totalStrokes * 2;
+        const parProyectado18 = activeGame.course.totalPar * 2;
+        hcpNeto = +((golpesProyectados18 - p.hcp - parProyectado18) * 0.96).toFixed(1);
+      } else {
+        // SI EL CAMPO ES DE 18 HOYOS: Se calcula con la fórmula estándar fija
+        hcpNeto = +((totalStrokes - p.hcp - activeGame.course.totalPar) * 0.96).toFixed(1);
+      }
     }
-
+    
     if (hcpNeto !== null) {
       const globalPlayer = appState.savedPlayers.find(sp => sp.code === p.code);
       if (globalPlayer) {
@@ -914,7 +920,6 @@ async function showResults() {
     results: finalResults
   };
   
-  // CORREGIDO: Busca y actualiza en el lugar exacto del array si ya existía por ID
   const matchIndex = appState.games.findIndex(g => g.id === gameRecord.id);
   if (matchIndex > -1) {
     appState.games[matchIndex] = gameRecord;
@@ -1075,11 +1080,9 @@ function viewGameDetail(id) {
   
   document.getElementById('hd-title').textContent = `${game.date} - ${game.name}`;
   
-  // Configurar botones de acción individuales de la partida
   const editBtn = document.getElementById('hd-edit-btn');
   editBtn.onclick = () => loadGameToEdit(game.id);
 
-  // AÑADIDO: Acción real para eliminar la partida individualmente
   const deleteBtn = document.getElementById('hd-delete-btn');
   deleteBtn.onclick = () => deleteGameFromHistory(game.id);
   
@@ -1145,7 +1148,6 @@ function loadGameToEdit(gameId) {
   activeGame.players = [...game.players];
   activeGame.scores = JSON.parse(JSON.stringify(game.scores));
 
-  // Forzar cambio visual a la pestaña 'Nueva'
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('tab-btn-nueva').classList.add('active');
@@ -1159,7 +1161,6 @@ function loadGameToEdit(gameId) {
   buildScorecardMatrix();
 }
 
-// AÑADIDO: Función para eliminar una partida específica del historial
 async function deleteGameFromHistory(gameId) {
   if (!confirm("¿Seguro que deseas eliminar permanentemente esta partida del historial clínico?")) return;
   
