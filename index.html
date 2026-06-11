@@ -310,9 +310,10 @@
     <div id="history-detail" class="section">
       <div class="section-hdr">
         <div class="section-title" id="hd-title"></div>
-        <div style="display:flex; gap:10px; margin-top:6px; width:100%">
-          <button class="btn-secondary" style="flex:1" onclick="closeHistoryDetail()">← Volver al Historial</button>
-          <button class="btn-primary" style="flex:1; background:#D97706;" id="hd-edit-btn">✏️ Editar Esta Partida</button>
+        <div style="display:flex; flex-wrap: wrap; gap:10px; margin-top:6px; width:100%">
+          <button class="btn-secondary" style="flex:1; min-width: 140px;" onclick="closeHistoryDetail()">← Volver</button>
+          <button class="btn-primary" style="flex:1; min-width: 160px; background:#D97706;" id="hd-edit-btn">✏️ Editar Partida</button>
+          <button class="btn-danger" style="flex:1; min-width: 160px;" id="hd-delete-btn">🗑️ Eliminar Partida</button>
         </div>
       </div>
       <div class="scorecard-wrap"><table class="sc" id="hd-table"></table></div>
@@ -820,7 +821,7 @@ function buildScorecardMatrix() {
   players.forEach((p, pi) => {
     html += `<tr><td class="pnc">${p.name}<span class="c-info">Hcp ${p.hcp}</span></td>`;
     for(let h=0; h<course.holes; h++) {
-      const currentVal = scores[p.code][h];
+      const currentVal = scores[p.code] ? scores[p.code][h] : '';
       html += `<td class="${is18 && h === 8 ? 'hsep' : ''}">
         <input class="si" type="number" min="1" max="20" value="${currentVal||''}" data-pcode="${p.code}" data-hole="${h}" oninput="registerScore(this)">
       </td>`;
@@ -838,6 +839,7 @@ function buildScorecardMatrix() {
 function registerScore(input) {
   const code = input.dataset.pcode;
   const hole = parseInt(input.dataset.hole);
+  if (!activeGame.scores[code]) activeGame.scores[code] = [];
   activeGame.scores[code][hole] = input.value ? parseInt(input.value) : '';
   
   const parDelHoyo = activeGame.course.pars[hole] || 4;
@@ -875,8 +877,9 @@ function recalcLiveMatrixTotals() {
 
 async function showResults() {
   let finalResults = activeGame.players.map(p => {
-    const playedHolesCount = activeGame.scores[p.code].filter(b => b !== '' && parseInt(b) > 0).length;
-    const totalStrokes = activeGame.scores[p.code].reduce((a, b) => a + (parseInt(b) || 0), 0);
+    const pScores = activeGame.scores[p.code] || [];
+    const playedHolesCount = pScores.filter(b => b !== '' && parseInt(b) > 0).length;
+    const totalStrokes = pScores.reduce((a, b) => a + (parseInt(b) || 0), 0);
     
     let hcpNeto = null;
     if (totalStrokes > 0 && playedHolesCount >= activeGame.course.holes) {
@@ -911,6 +914,7 @@ async function showResults() {
     results: finalResults
   };
   
+  // CORREGIDO: Busca y actualiza en el lugar exacto del array si ya existía por ID
   const matchIndex = appState.games.findIndex(g => g.id === gameRecord.id);
   if (matchIndex > -1) {
     appState.games[matchIndex] = gameRecord;
@@ -1071,9 +1075,13 @@ function viewGameDetail(id) {
   
   document.getElementById('hd-title').textContent = `${game.date} - ${game.name}`;
   
-  // RESTAURADO: Configurar botón para editar la partida seleccionada
+  // Configurar botones de acción individuales de la partida
   const editBtn = document.getElementById('hd-edit-btn');
   editBtn.onclick = () => loadGameToEdit(game.id);
+
+  // AÑADIDO: Acción real para eliminar la partida individualmente
+  const deleteBtn = document.getElementById('hd-delete-btn');
+  deleteBtn.onclick = () => deleteGameFromHistory(game.id);
   
   const table = document.getElementById('hd-table');
   const c = game.course;
@@ -1137,7 +1145,11 @@ function loadGameToEdit(gameId) {
   activeGame.players = [...game.players];
   activeGame.scores = JSON.parse(JSON.stringify(game.scores));
 
-  showTab('nueva');
+  // Forzar cambio visual a la pestaña 'Nueva'
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('tab-btn-nueva').classList.add('active');
+  document.getElementById('tab-nueva').classList.add('active');
 
   document.getElementById('setup-sec').style.display = 'none';
   document.getElementById('scorecard-sec').classList.add('active');
@@ -1145,6 +1157,17 @@ function loadGameToEdit(gameId) {
   document.getElementById('sc-meta').textContent = `Modificando Ronda · Campo: ${fullCourse.name}`;
   
   buildScorecardMatrix();
+}
+
+// AÑADIDO: Función para eliminar una partida específica del historial
+async function deleteGameFromHistory(gameId) {
+  if (!confirm("¿Seguro que deseas eliminar permanentemente esta partida del historial clínico?")) return;
+  
+  appState.games = appState.games.filter(g => g.id !== gameId);
+  await saveToStorage();
+  
+  closeHistoryDetail();
+  renderHistoryList();
 }
 
 function closeHistoryDetail() {
