@@ -102,7 +102,7 @@
     table.rt th { background: #F1F5F9; padding: 10px 12px; text-align: left; font-weight: 600; font-size: 11px; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid var(--border); }
     table.rt td { padding: 10px 12px; border-bottom: 1px solid var(--border); color: var(--text-main); }
 
-    .history-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; margin-bottom: 10px; cursor: pointer; box-shadow: var(--shadow); }
+    .history-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; margin-bottom: 10px; box-shadow: var(--shadow); }
     .history-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
     .history-date { font-size: 14px; font-weight: 600; color: var(--text-main); }
     .history-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
@@ -309,14 +309,10 @@
 
     <div id="history-detail" class="section">
       <div class="section-hdr">
-        <div>
-          <div class="section-title" id="hd-title"></div>
-          <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">Modo Edición Clínico habilitado. Puedes cambiar golpes directamente en la tarjeta.</div>
-        </div>
-        <div class="actions" style="display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;">
-          <button class="btn-primary" id="btn-save-edited-game" onclick="saveHistoryGameChanges()">💾 Guardar Cambios en Tarjeta</button>
-          <button class="btn-danger" id="btn-delete-single-game" onclick="deleteSingleGameFromHistory()">🗑️ Eliminar Partida</button>
-          <button class="btn-secondary" onclick="closeHistoryDetail()">← Volver al Historial</button>
+        <div class="section-title" id="hd-title"></div>
+        <div style="display:flex; gap:10px; margin-top:6px; width:100%">
+          <button class="btn-secondary" style="flex:1" onclick="closeHistoryDetail()">← Volver al Historial</button>
+          <button class="btn-primary" style="flex:1; background:#D97706;" id="hd-edit-btn">✏️ Editar Esta Partida</button>
         </div>
       </div>
       <div class="scorecard-wrap"><table class="sc" id="hd-table"></table></div>
@@ -336,6 +332,7 @@ let appState = {
 };
 
 let activeGame = {
+  id: null,
   players: [],
   course: null,
   matchName: '',
@@ -346,7 +343,6 @@ let activeGame = {
 let currentFormRows = [];
 let editingCourseId = null;
 let editingPlayerCode = null;
-let selectedHistoryGameId = null;
 
 function generateCode(prefix) {
   return prefix + '-' + Math.random().toString(36).substr(2, 5).toUpperCase();
@@ -398,8 +394,8 @@ async function saveToStorage() {
 function setDefaultData() {
   appState = {
     savedPlayers: [
-      { code: 'PLY-JUAN1', name: 'Juan Pérez', hcp: 5 },
-      { code: 'PLY-CARL2', name: 'Carlos Gomez', hcp: 12 }
+      { code: 'PLY-JUAN1', name: 'Juan Pérez', hcp: 5, initialHcp: 5 },
+      { code: 'PLY-CARL2', name: 'Carlos Gomez', hcp: 12, initialHcp: 12 }
     ],
     courses: [
       { id: 'CRS-DEFAULT', name: 'Santiago Links', holes: 18, totalPar: 72, pars: [4,4,3,4,5,3,4,5,4,4,4,3,4,5,3,4,5,4] }
@@ -412,6 +408,12 @@ function ensureDataStructures() {
   if(!appState.savedPlayers) appState.savedPlayers = [];
   if(!appState.courses) appState.courses = [];
   if(!appState.games) appState.games = [];
+  
+  appState.savedPlayers.forEach(p => {
+    if (p.initialHcp === undefined) {
+      p.initialHcp = p.hcp || 0;
+    }
+  });
 }
 
 function showTab(tab) {
@@ -595,10 +597,11 @@ async function saveDirectPlayer() {
     if (playerIndex > -1) {
       appState.savedPlayers[playerIndex].name = name;
       appState.savedPlayers[playerIndex].hcp = hcp;
+      appState.savedPlayers[playerIndex].initialHcp = hcp; 
     }
     editingPlayerCode = null;
   } else {
-    appState.savedPlayers.push({ code: generateCode('PLY'), name: name, hcp: hcp });
+    appState.savedPlayers.push({ code: generateCode('PLY'), name: name, hcp: hcp, initialHcp: hcp });
   }
   
   await saveToStorage();
@@ -656,10 +659,12 @@ function renderJugadoresTab() {
   const stats = calculatePlayerRecordsFromGames(appState.games);
 
   list.innerHTML = appState.savedPlayers.map(p => {
-    const st = stats[p.code] || { 1: 0, 2: 0, 3: 0, otros: 0 };
+    const st = stats[p.code] || { 1: 0, 2: 0, 3: 0, otros: 0, jugadas: 0 };
+    const hcpAMostrar = (st.jugadas === 0) ? (p.initialHcp !== undefined ? p.initialHcp : p.hcp) : p.hcp;
+
     return `<div class="admin-item">
       <div>
-        <strong style="color:var(--text-main)">👤 ${p.name}</strong> <span style="font-size:12px">(Hcp Index Actual: <b>${p.hcp}</b>)</span>
+        <strong style="color:var(--text-main)">👤 ${p.name}</strong> <span style="font-size:12px">(Hcp Index Actual: ${hcpAMostrar})</span>
         <div class="player-medals">
           <span>🥇 1ro: <b>${st[1]}</b></span> · 
           <span>🥈 2do: <b>${st[2]}</b></span> · 
@@ -753,7 +758,7 @@ async function startGame() {
       pName = inputName.value.trim();
       if(!pName) continue;
       pCode = generateCode('PLY');
-      appState.savedPlayers.push({ code: pCode, name: pName, hcp: pHcp });
+      appState.savedPlayers.push({ code: pCode, name: pName, hcp: pHcp, initialHcp: pHcp });
       dynamicPlayersAdded = true;
     } else if(pCode !== "") {
       const match = appState.savedPlayers.find(p => p.code === pCode);
@@ -772,9 +777,12 @@ async function startGame() {
   activeGame.course = course;
   activeGame.matchName = document.getElementById('match-name').value.trim() || 'Ronda Regular';
   activeGame.matchDate = document.getElementById('match-date').value || new Date().toISOString().split('T')[0];
-  activeGame.scores = {};
   
-  participants.forEach(p => { activeGame.scores[p.code] = new Array(course.holes).fill(''); });
+  if (!activeGame.id) {
+    activeGame.id = `GAME-${Date.now()}`;
+    activeGame.scores = {};
+    participants.forEach(p => { activeGame.scores[p.code] = new Array(course.holes).fill(''); });
+  }
   
   document.getElementById('setup-sec').style.display = 'none';
   document.getElementById('scorecard-sec').classList.add('active');
@@ -849,7 +857,7 @@ function registerScore(input) {
 function recalcLiveMatrixTotals() {
   const { players, course, scores } = activeGame;
   players.forEach(p => {
-    const sArr = scores[p.code];
+    const sArr = scores[p.code] || [];
     let outSum = 0, inSum = 0, totSum = 0;
     for(let h=0; h<course.holes; h++) {
       let val = parseInt(sArr[h]) || 0;
@@ -866,35 +874,29 @@ function recalcLiveMatrixTotals() {
 }
 
 async function showResults() {
-  activeGame.players.forEach(p => {
+  let finalResults = activeGame.players.map(p => {
+    const playedHolesCount = activeGame.scores[p.code].filter(b => b !== '' && parseInt(b) > 0).length;
     const totalStrokes = activeGame.scores[p.code].reduce((a, b) => a + (parseInt(b) || 0), 0);
-    if(totalStrokes > 0) {
-      const hcpNeto = +((totalStrokes - p.hcp - activeGame.course.totalPar) * 0.96).toFixed(1);
+    
+    let hcpNeto = null;
+    if (totalStrokes > 0 && playedHolesCount >= activeGame.course.holes) {
+      hcpNeto = +((totalStrokes - p.hcp - activeGame.course.totalPar) * 0.96).toFixed(1);
+    }
+
+    if (hcpNeto !== null) {
       const globalPlayer = appState.savedPlayers.find(sp => sp.code === p.code);
       if (globalPlayer) {
-        globalPlayer.hcp = hcpNeto;
+        globalPlayer.hcp = hcpNeto; 
       }
     }
-  });
-
-  let finalResults = activeGame.players.map(p => {
-    const totalStrokes = activeGame.scores[p.code].reduce((a, b) => a + (parseInt(b) || 0), 0);
-    const globalPlayer = appState.savedPlayers.find(sp => sp.code === p.code);
-    const currentHcpNeto = globalPlayer ? globalPlayer.hcp : p.hcp;
     
-    return { 
-      code: p.code, 
-      name: p.name, 
-      total: totalStrokes, 
-      hcpNeto: currentHcpNeto, 
-      hcpIdx: p.hcp 
-    };
+    return { code: p.code, name: p.name, total: totalStrokes, hcpNeto: hcpNeto, hcpIdx: p.hcp };
   }).filter(r => r.total > 0).sort((a,b) => a.total - b.total);
 
   if(finalResults.length === 0) { alert('Escribe puntajes antes de finalizar.'); return; }
   
   const gameRecord = {
-    id: `GAME-${Date.now()}`,
+    id: activeGame.id,
     date: activeGame.matchDate,
     name: activeGame.matchName,
     course: {
@@ -904,15 +906,12 @@ async function showResults() {
       totalPar: activeGame.course.totalPar,
       pars: [...activeGame.course.pars]
     },
-    players: activeGame.players.map(p => {
-      const gp = appState.savedPlayers.find(sp => sp.code === p.code);
-      return { code: p.code, name: p.name, hcp: gp ? gp.hcp : p.hcp };
-    }),
+    players: activeGame.players.map(p => ({ code: p.code, name: p.name, hcp: p.hcp })),
     scores: JSON.parse(JSON.stringify(activeGame.scores)),
     results: finalResults
   };
   
-  const matchIndex = appState.games.findIndex(g => g.id === gameRecord.id || (g.date === gameRecord.date && g.name === gameRecord.name));
+  const matchIndex = appState.games.findIndex(g => g.id === gameRecord.id);
   if (matchIndex > -1) {
     appState.games[matchIndex] = gameRecord;
   } else {
@@ -946,7 +945,7 @@ function renderFinalDashboard(results, cardsId, tableId, parDelCampo) {
     <div class="mc"><div class="ml">Mejor Score Neto</div><div class="mv">${w.total}</div><div class="ms">${diffPar >= 0 ? '+' : ''}${diffPar} vs Par</div></div>
   `;
   
-  let html = `<thead><tr><th>Pos.</th><th>Jugador</th><th>Hcp Inicial</th><th>Golpes</th><th>vs Par</th><th>Nuevo Hándicap Index</th></tr></thead><tbody>`;
+  let html = `<thead><tr><th>Pos.</th><th>Jugador</th><th>Hcp Index</th><th>Golpes</th><th>vs Par</th><th>Nuevo Hándicap (Neto)</th></tr></thead><tbody>`;
   results.forEach((r, i) => {
     const diff = r.total - parDelCampo;
     const diffStr = diff === 0 ? 'E' : diff > 0 ? `+${diff}` : `${diff}`;
@@ -1050,13 +1049,13 @@ function renderHistoryList() {
       return `<span class="hp-badge ${idx === 0 ? 'winner-badge' : ''}"><strong>#${idx + 1}</strong> ${icon}${r.name}: ${r.total}g</span>`;
     }).join('');
     
-    return `<div class="history-item" onclick="viewGameDetail('${g.id}')">
+    return `<div class="history-item">
       <div class="history-header">
         <div>
           <div class="history-date">${g.date} — <strong>${g.name}</strong></div>
           <div class="history-meta">Campo: ${g.course ? g.course.name : 'N/A'}</div>
         </div>
-        <span style="color:var(--primary); font-size:12px; font-weight:600;">⚙️ Ver / Editar Tarjeta →</span>
+        <button class="btn-secondary" style="padding: 6px 12px; font-size:12px; font-weight:600; border-color:var(--primary); color:var(--primary)" onclick="viewGameDetail('${g.id}')">Ver Tarjeta →</button>
       </div>
       <div class="history-players">${badges}</div>
     </div>`;
@@ -1064,7 +1063,6 @@ function renderHistoryList() {
 }
 
 function viewGameDetail(id) {
-  selectedHistoryGameId = id;
   const game = appState.games.find(g => g.id === id);
   if(!game) return;
   
@@ -1072,6 +1070,10 @@ function viewGameDetail(id) {
   document.getElementById('history-detail').classList.add('active');
   
   document.getElementById('hd-title').textContent = `${game.date} - ${game.name}`;
+  
+  // RESTAURADO: Configurar botón para editar la partida seleccionada
+  const editBtn = document.getElementById('hd-edit-btn');
+  editBtn.onclick = () => loadGameToEdit(game.id);
   
   const table = document.getElementById('hd-table');
   const c = game.course;
@@ -1097,130 +1099,57 @@ function viewGameDetail(id) {
   
   game.players.forEach(p => {
     const pScores = game.scores[p.code] || [];
-    html += `<tr><td class="pnc">${p.name}<span class="c-info">Hcp Inicial: ${p.hcp}</span></td>`;
+    html += `<tr><td class="pnc">${p.name}<span class="c-info">Hcp ${p.hcp}</span></td>`;
+    let oSum = 0, iSum = 0, tSum = 0;
     
     for(let h=0; h<c.holes; h++) {
-      const v = pScores[h] || '';
-      html += `<td class="${is18 && h === 8 ? 'hsep' : ''}">
-        <input class="si h-edited-score" type="number" min="1" max="20" value="${v}" data-pcode="${p.code}" data-hole="${h}" oninput="recalcHistoryLiveTotals()">
-      </td>`;
-      if(is18 && h === 8) html += `<td class="tc" id="hd-out-${p.code}">0</td>`;
+      const v = parseInt(pScores[h]) || 0;
+      tSum += v;
+      if(h < 9) oSum += v; else iSum += v;
+      const diff = v - c.pars[h];
+      const cls = !v ? '' : diff <= -2 ? 'c-eagle' : diff === -1 ? 'c-birdie' : diff === 1 ? 'c-bogey' : diff >= 2 ? 'c-dbl' : '';
+      
+      html += `<td class="${is18 && h === 8 ? 'hsep' : ''} ${cls}">${v || '—'}</td>`;
+      if(is18 && h === 8) html += `<td class="tc">${oSum || '—'}</td>`;
     }
-    if(is18) html += `<td class="tc" id="hd-in-${p.code}">0</td>`;
-    html += `<td class="tc"><strong id="hd-tot-${p.code}">0</strong></td></tr>`;
+    if(is18) html += `<td class="tc">${iSum || '—'}</td>`;
+    html += `<td class="tc"><strong>${tSum || '—'}</strong></td></tr>`;
   });
   
   html += '</tbody>';
   table.innerHTML = html;
   
-  recalcHistoryLiveTotals();
+  const sortedResults = [...(game.results || [])].sort((a,b) => a.total - b.total);
+  renderFinalDashboard(sortedResults, 'hd-cards', 'hd-res-table', c.totalPar);
 }
 
-function recalcHistoryLiveTotals() {
-  const game = appState.games.find(g => g.id === selectedHistoryGameId);
-  if(!game) return;
-  
-  const c = game.course;
-  const is18 = c.holes === 18;
-  
-  let tempScores = {};
-  game.players.forEach(p => { tempScores[p.code] = []; });
-  
-  document.querySelectorAll('.h-edited-score').forEach(input => {
-    const pcode = input.dataset.pcode;
-    const hole = parseInt(input.dataset.hole);
-    if(tempScores[pcode]) {
-      tempScores[pcode][hole] = input.value ? parseInt(input.value) : '';
-    }
-  });
+function loadGameToEdit(gameId) {
+  const game = appState.games.find(g => g.id === gameId);
+  if (!game) return;
 
-  game.players.forEach(p => {
-    const sArr = tempScores[p.code] || [];
-    let outSum = 0, inSum = 0, totSum = 0;
-    
-    for(let h=0; h<c.holes; h++) {
-      let val = parseInt(sArr[h]) || 0;
-      totSum += val;
-      if(h < 9) outSum += val; else inSum += val;
-      
-      const inputEl = document.querySelector(`.h-edited-score[data-pcode="${p.code}"][data-hole="${h}"]`);
-      if(inputEl) {
-        const cell = inputEl.parentElement;
-        cell.className = (is18 && h === 8) ? 'hsep' : '';
-        if(val) {
-          const diff = val - c.pars[h];
-          if(diff <= -2) cell.classList.add('c-eagle');
-          else if(diff === -1) cell.classList.add('c-birdie');
-          else if(diff === 1) cell.classList.add('c-bogey');
-          else if(diff >= 2) cell.classList.add('c-dbl');
-        }
-      }
-    }
-    
-    const outCell = document.getElementById(`hd-out-${p.code}`);
-    const inCell = document.getElementById(`hd-in-${p.code}`);
-    const totCell = document.getElementById(`hd-tot-${p.code}`);
-    
-    if(outCell) outCell.textContent = outSum || '';
-    if(inCell) inCell.textContent = inSum || '';
-    if(totCell) totCell.textContent = totSum || '';
-  });
+  activeGame.id = game.id;
+  activeGame.matchDate = game.date;
+  activeGame.matchName = game.name;
+  
+  const fullCourse = appState.courses.find(c => c.id === game.course.id) || game.course;
+  activeGame.course = fullCourse;
+  
+  activeGame.players = [...game.players];
+  activeGame.scores = JSON.parse(JSON.stringify(game.scores));
 
-  let mockResults = game.players.map(p => {
-    let strokes = 0;
-    document.querySelectorAll(`.h-edited-score[data-pcode="${p.code}"]`).forEach(i => { strokes += (parseInt(i.value) || 0); });
-    const hcpNeto = strokes > 0 ? +((strokes - p.hcp - c.totalPar) * 0.96).toFixed(1) : 0;
-    return { code: p.code, name: p.name, total: strokes, hcpNeto: hcpNeto, hcpIdx: p.hcp };
-  }).filter(r => r.total > 0).sort((a,b) => a.total - b.total);
+  showTab('nueva');
 
-  renderFinalDashboard(mockResults, 'hd-cards', 'hd-res-table', c.totalPar);
-}
-
-async function saveHistoryGameChanges() {
-  const gameIndex = appState.games.findIndex(g => g.id === selectedHistoryGameId);
-  if(gameIndex === -1) return;
+  document.getElementById('setup-sec').style.display = 'none';
+  document.getElementById('scorecard-sec').classList.add('active');
+  document.getElementById('sc-title').textContent = activeGame.matchName;
+  document.getElementById('sc-meta').textContent = `Modificando Ronda · Campo: ${fullCourse.name}`;
   
-  let game = appState.games[gameIndex];
-  
-  document.querySelectorAll('.h-edited-score').forEach(input => {
-    const pcode = input.dataset.pcode;
-    const hole = parseInt(input.dataset.hole);
-    game.scores[pcode][hole] = input.value ? parseInt(input.value) : '';
-  });
-  
-  game.results = game.players.map(p => {
-    const totalStrokes = game.scores[p.code].reduce((a, b) => a + (parseInt(b) || 0), 0);
-    const hcpNeto = totalStrokes > 0 ? +((totalStrokes - p.hcp - game.course.totalPar) * 0.96).toFixed(1) : 0;
-    
-    const globalPlayer = appState.savedPlayers.find(sp => sp.code === p.code);
-    if (globalPlayer && totalStrokes > 0) {
-      globalPlayer.hcp = hcpNeto;
-    }
-    
-    return { code: p.code, name: p.name, total: totalStrokes, hcpNeto: hcpNeto, hcpIdx: p.hcp };
-  }).filter(r => r.total > 0).sort((a,b) => a.total - b.total);
-  
-  await saveToStorage();
-  alert('¡Tarjeta de puntuación e historial recalculado actualizados con éxito en la nube!');
-  closeHistoryDetail();
-  renderHistoryList();
-}
-
-async function deleteSingleGameFromHistory() {
-  if(!confirm('¿Seguro que deseas eliminar esta partida permanentemente del historial clínico?')) return;
-  
-  appState.games = appState.games.filter(g => g.id !== selectedHistoryGameId);
-  await saveToStorage();
-  
-  alert('Partida eliminada.');
-  closeHistoryDetail();
-  renderHistoryList();
+  buildScorecardMatrix();
 }
 
 function closeHistoryDetail() {
   document.getElementById('history-detail').classList.remove('active');
   document.getElementById('history-main-sec').style.display = 'block';
-  selectedHistoryGameId = null;
 }
 
 function backToScorecard() {
@@ -1238,6 +1167,7 @@ function backToSetup() {
   document.getElementById('match-name').value = '';
   document.getElementById('players-list').innerHTML = '';
   
+  activeGame = { id: null, players: [], course: null, matchName: '', matchDate: '', scores: {} };
   currentFormRows = [];
   populateSetupSelectors();
   addPlayerRow();
