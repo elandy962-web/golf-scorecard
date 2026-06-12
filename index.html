@@ -21,19 +21,30 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     
-    body { background-color: var(--bg-app); color: var(--text-main); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    body { background-color: var(--bg-app); color: var(--text-main); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; overflow-x: hidden; padding-top: 130px; }
     
-    .app { max-width: 100%; width: 900px; margin: 1rem auto; padding: 0 1rem; }
+    .app { max-width: 100%; width: 900px; margin: 0 auto 2rem auto; padding: 0 1rem; }
     
-    .header-zone { margin-bottom: 1.5rem; }
-    h1 { font-size: 20px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 10px; letter-spacing: -0.5px; }
+    .top-navbar-fixed { position: fixed; top: 0; left: 0; right: 0; background: var(--bg-app); z-index: 1000; padding: 10px 0 0 0; border-bottom: 1px solid var(--border); box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
+    .navbar-container { max-width: 900px; margin: 0 auto; padding: 0 1rem; }
+
+    .header-zone { margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; }
+    h1 { font-size: 18px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 10px; letter-spacing: -0.5px; }
     
-    .tabs { display: flex; gap: 4px; margin-bottom: 1.5rem; background: #E2E8F0; padding: 4px; border-radius: var(--radius-md); width: 100%; overflow-x: auto; }
+    .tabs { display: flex; gap: 4px; margin-bottom: 10px; background: #E2E8F0; padding: 4px; border-radius: var(--radius-md); width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .tab-btn { flex: 1; text-align: center; padding: 10px 12px; font-size: 13px; font-weight: 600; cursor: pointer; background: transparent; border: none; color: var(--text-muted); border-radius: calc(var(--radius-md) - 2px); transition: all 0.2s ease; white-space: nowrap; }
     .tab-btn.active { background: var(--bg-card); color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.04); }
 
     .section { display: none; }
     .section.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+
+    .welcome-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 1rem; }
+    @media(min-width: 600px) { .welcome-grid { grid-template-columns: repeat(2, 1fr); } }
+    .welcome-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; text-align: left; cursor: pointer; box-shadow: var(--shadow); transition: all 0.2s ease; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; }
+    .welcome-card:hover { transform: translateY(-3px); border-color: var(--primary); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
+    .welcome-card-icon { font-size: 32px; margin-bottom: 12px; }
+    .welcome-card-title { font-size: 16px; font-weight: 700; color: var(--text-main); margin-bottom: 6px; }
+    .welcome-card-desc { font-size: 13px; color: var(--text-muted); line-height: 1.4; }
 
     .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1.5rem; box-shadow: var(--shadow); }
     .card-title { font-size: 14px; font-weight: 600; color: var(--text-main); margin-bottom: 1.25rem; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -46,43 +57,36 @@
     
     input[type="text"], input[type="date"], select, input[type="number"] { font-size: 15px; padding: 11px 10px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-card); color: var(--text-main); width: 100%; transition: all 0.15s ease; outline: none; -webkit-appearance: none; appearance: none; }
     select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%2364748B' d='M0 0l5 5 5-5z'/></svg>"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 30px; }
-    input[type="text"]:focus, select:focus, input[type="number"]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.12); }
 
     .btn-primary { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; box-shadow: 0 4px 10px rgba(29, 158, 117, 0.2); }
     @media(min-width: 600px) { .btn-primary { width: auto; } }
     .btn-primary:hover { background: var(--primary-hover); }
     .btn-secondary { background: var(--bg-card); border: 1px solid var(--border); padding: 10px 16px; border-radius: var(--radius-md); font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text-main); transition: all 0.2s ease; }
     .btn-danger { background: #FFF1F2; border: 1px solid #FEE2E2; padding: 10px 16px; border-radius: var(--radius-md); font-size: 13px; font-weight: 600; cursor: pointer; color: #E11D48; transition: all 0.2s ease; text-align: center; display: inline-block; }
-    .btn-danger:hover { background: #FFE4E6; }
     .btn-icon { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 20px; padding: 6px 10px; border-radius: var(--radius-md); }
-    .btn-icon:hover { color: #E11D48; background: #FFF1F2; }
 
     .player-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; background: var(--bg-app); padding: 8px; border-radius: var(--radius-md); border: 1px solid var(--border); }
     .player-row select { flex: 1; min-width: 0; text-overflow: ellipsis; font-size: 13px; padding: 8px; }
     .player-row .p-inline-name { flex: 1; min-width: 0; font-size: 13px; padding: 8px; }
     .player-row input[type="number"] { width: 55px; text-align: center; font-size: 13px; padding: 8px 4px; }
-    .player-row .lbl { font-size: 11px; font-weight: 600; color: var(--text-muted); white-space: nowrap; }
 
     .grid-pars { display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; margin-top: 8px; }
     .par-field { display: flex; flex-direction: column; align-items: center; gap: 2px; }
     .par-field label { font-size: 10px; font-weight: 600; color: var(--text-muted); }
-    .par-field input { width: 100%; text-align: center; padding: 6px 2px; font-size: 12px; font-weight: 600; -webkit-appearance: textfield; appearance: textfield; }
+    .par-field input { width: 100%; text-align: center; padding: 6px 2px; font-size: 12px; font-weight: 600; }
 
     .scorecard-wrap { overflow-x: auto; margin-bottom: 1.5rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); width: 100%; -webkit-overflow-scrolling: touch; }
     table.sc { width: 840px; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
     table.sc th { background: #F1F5F9; padding: 10px 4px; text-align: center; font-weight: 600; border-bottom: 1px solid var(--border); color: var(--text-muted); font-size: 11px; text-transform: uppercase; }
     table.sc th.pn { text-align: left; padding-left: 12px; width: 140px; }
     table.sc td { padding: 6px 2px; text-align: center; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); vertical-align: middle; }
-    table.sc tr:last-child td { border-bottom: none; }
-    table.sc td:last-child { border-right: none; }
-    table.sc td.pnc text-align: left; padding-left: 12px; font-weight: 600; font-size: 12px; background: #F8FAFC; color: var(--text-main); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    table.sc td.pnc { text-align: left; padding-left: 12px; font-weight: 600; font-size: 12px; background: #F8FAFC; color: var(--text-main); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     table.sc td.pnc span.c-info { font-size: 10px; font-weight: 400; color: var(--text-muted); display: block; margin-top: 1px; }
     table.sc td.par-r { background: #F1F5F9; font-weight: 600; color: var(--text-main); padding: 10px 2px; }
     table.sc .tc { background: #E2E8F0; font-weight: 700; color: var(--text-main); width: 45px; }
     table.sc .hsep { border-right: 2px solid #CBD5E1 !important; }
     
-    table.sc input.si { width: 34px; height: 32px; text-align: center; font-size: 14px; font-weight: 700; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card); color: var(--text-main); padding: 0; margin: 0; box-sizing: border-box; }
-    table.sc input.si:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(29,158,117,0.15); }
+    table.sc input.si { width: 34px; height: 32px; text-align: center; font-size: 14px; font-weight: 700; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card); padding: 0; margin: 0; }
 
     .c-eagle { background: #A7F3D0 !important; color: #065F46 !important; } 
     .c-birdie { background: #D1FAE5 !important; color: #065F46 !important; }
@@ -98,7 +102,7 @@
     .mc.winner { border: 2px solid var(--primary); background: #F0FDF4; }
 
     .rt-wrap { overflow-x: auto; width: 100%; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow); }
-    table.rt { width: 100%; min-width: 500px; border-collapse: collapse; font-size: 13px; background: var(--bg-card); overflow: hidden; }
+    table.rt { width: 100%; min-width: 500px; border-collapse: collapse; font-size: 13px; background: var(--bg-card); }
     table.rt th { background: #F1F5F9; padding: 10px 12px; text-align: left; font-weight: 600; font-size: 11px; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid var(--border); }
     table.rt td { padding: 10px 12px; border-bottom: 1px solid var(--border); color: var(--text-main); }
 
@@ -120,33 +124,100 @@
     .ld { width: 12px; height: 12px; border-radius: 3px; }
 
     .admin-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--border); background: var(--bg-card); }
-    .admin-item:last-child { border-bottom: none; }
     .player-medals { display: flex; gap: 6px; font-size: 11px; margin-top: 4px; color: var(--text-muted); }
-
-    .loading-banner { background: #E0F2FE; color: #0369A1; padding: 8px; text-align: center; font-size: 12px; font-weight: 600; border-radius: 8px; margin-bottom: 10px; display: none; }
+    .loading-banner { background: #E0F2FE; color: #0369A1; padding: 6px 12px; text-align: center; font-size: 11px; font-weight: 600; border-radius: 8px; display: none; }
 
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(2px); }
       to { opacity: 1; transform: translateY(0); }
     }
+
+    /* ESTILO ESPECIAL CUANDO SE IMPRIME SOLO EL CUADRO DE RÉCORD */
+    body.print-record-only { padding-top: 0px !important; background: white !important; }
+    body.print-record-only .top-navbar-fixed,
+    body.print-record-only .card:not(#record-card-container),
+    body.print-record-only .section-hdr,
+    body.print-record-only #history-list,
+    body.print-record-only .btn-secondary {
+      display: none !important;
+    }
+    body.print-record-only #record-card-container {
+      box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; width: 100% !important;
+    }
+    body.print-record-only table.rt {
+      width: 100% !important; border: 1px solid #000 !important;
+    }
+    body.print-record-only table.rt th {
+      background: #E2E8F0 !important; color: black !important; border-bottom: 1px solid black !important;
+    }
+    body.print-record-only table.rt td {
+      border-bottom: 1px solid #E2E8F0 !important;
+    }
   </style>
 </head>
 <body>
 
+<!-- Menú y cabecera Superior Fijos -->
+<div class="top-navbar-fixed">
+  <div class="navbar-container">
+    <div class="header-zone">
+      <h1>⛳ Scorecard Manager Cloud</h1>
+      <div id="cloud-status" class="loading-banner">Sincronizando...</div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-btn-inicio" onclick="showTab('inicio')">🏠 Inicio</button>
+      <button class="tab-btn" id="tab-btn-nueva" onclick="showTab('nueva')">Nueva partida</button>
+      <button class="tab-btn" id="tab-btn-historial" onclick="showTab('historial')">Historial</button>
+      <button class="tab-btn" id="tab-btn-campos" onclick="showTab('campos')">Campos</button>
+      <button class="tab-btn" id="tab-btn-jugadores" onclick="showTab('jugadores')">Jugadores</button>
+    </div>
+  </div>
+</div>
+
 <div class="app">
-  <div class="header-zone">
-    <h1>⛳ Golf Scorecard Manager Cloud</h1>
-    <div id="cloud-status" class="loading-banner">Sincronizando con la nube...</div>
+
+  <!-- SECCIÓN INICIO -->
+  <div id="tab-inicio" class="section active">
+    <div class="card" style="background: linear-gradient(135deg, #1D9E75 0%, #116A4E 100%); color: white; padding: 1.75rem;">
+      <h2 style="font-size: 22px; font-weight: 700; margin-bottom: 6px;">¡Buen día en el campo! 🏌️‍♂️</h2>
+      <p style="font-size: 13px; opacity: 0.9;">¿Qué te gustaría gestionar el día de hoy en Golf Scorecard Manager?</p>
+    </div>
+    
+    <div class="welcome-grid">
+      <div class="welcome-card" onclick="showTab('nueva')">
+        <div>
+          <div class="welcome-card-icon">➕🏆</div>
+          <div class="welcome-card-title">Comenzar Nueva Partida</div>
+          <div class="welcome-card-desc">Configura los jugadores de la mesa, selecciona el campo y empieza a trackear los golpes en vivo.</div>
+        </div>
+      </div>
+      <div class="welcome-card" onclick="showTab('historial')">
+        <div>
+          <div class="welcome-card-icon">🔍📊</div>
+          <div class="welcome-card-title">Consultar Historial</div>
+          <div class="welcome-card-desc">Revisa el registro de rondas anteriores, estadísticas de podios y analiza las tarjetas completas.</div>
+        </div>
+      </div>
+      <div class="welcome-card" onclick="showTab('campos')">
+        <div>
+          <div class="welcome-card-icon">⛳⚙️</div>
+          <div class="welcome-card-title">Configurar Campos</div>
+          <div class="welcome-card-desc">Registra nuevos campos de golf de 9 u 18 Hoyos, o edita los golpes de par autorizados por hoyo.</div>
+        </div>
+      </div>
+      <div class="welcome-card" onclick="showTab('jugadores')">
+        <div>
+          <div class="welcome-card-icon">👤🏅</div>
+          <div class="welcome-card-title">Gestión de Jugadores</div>
+          <div class="welcome-card-desc">Administra la base de datos de jugadores fijos y consulta sus Hándicaps Index calculados de forma automática.</div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="tabs">
-    <button class="tab-btn active" id="tab-btn-nueva" onclick="showTab('nueva')">Nueva partida</button>
-    <button class="tab-btn" id="tab-btn-campos" onclick="showTab('campos')">Configurar Campos</button>
-    <button class="tab-btn" id="tab-btn-jugadores" onclick="showTab('jugadores')">Jugadores</button>
-    <button class="tab-btn" id="tab-btn-historial" onclick="showTab('historial')">Historial</button>
-  </div>
-
-  <div id="tab-nueva" class="section active">
+  <!-- SECCIÓN NUEVA PARTIDA -->
+  <div id="tab-nueva" class="section">
     <div id="setup-sec">
       <div class="card">
         <div class="card-title">Ajustes de la Ronda</div>
@@ -212,6 +283,7 @@
     </div>
   </div>
 
+  <!-- SECCIÓN CONFIGURAR CAMPOS -->
   <div id="tab-campos" class="section">
     <div class="card">
       <div class="card-title" id="course-form-title">Registrar Campo de Golf</div>
@@ -232,24 +304,22 @@
           <input type="number" id="course-total-par" value="72" readonly style="font-weight: 600; background: var(--bg-app);">
         </div>
       </div>
-
       <div style="margin-top:1.5rem;">
         <label style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Asignar Par de cada Hoyo:</label>
         <div class="grid-pars" id="grid-pars-1"></div>
         <div class="grid-pars" id="grid-pars-2" style="margin-top:6px;"></div>
       </div>
-
       <div id="course-form-actions" style="margin-top:1.5rem; display:flex; flex-direction:column; gap:10px;">
         <button class="btn-primary" style="width:100%;" onclick="saveNewCourse()">Guardar Campo de Golf</button>
       </div>
     </div>
-
     <div class="card">
       <div class="card-title">Campos Registrados</div>
       <div id="courses-list-render" style="border: 1px solid var(--border); border-radius: var(--radius-md); overflow:hidden;"></div>
     </div>
   </div>
 
+  <!-- SECCIÓN JUGADORES -->
   <div id="tab-jugadores" class="section">
     <div class="card">
       <div class="card-title" id="player-form-title">Registrar Nuevo Jugador Fijo</div>
@@ -267,16 +337,15 @@
         <button class="btn-primary" style="width:100%" onclick="saveDirectPlayer()">Registrar Jugador</button>
       </div>
     </div>
-
     <div class="card">
-      <div class="card-title">Lista de Jugadores Registrados e Historial de Podios</div>
+      <div class="card-title">Lista de Jugadores Registrados</div>
       <div id="players-list-render" style="border: 1px solid var(--border); border-radius: var(--radius-md); overflow:hidden;"></div>
     </div>
   </div>
 
+  <!-- SECCIÓN HISTORIAL -->
   <div id="tab-historial" class="section">
     <div id="history-main-sec">
-      
       <div class="card" style="margin-bottom: 1rem;">
         <div class="card-title" style="margin-bottom: 0.75rem;">🔍 Filtrar Récords e Historial por Fecha</div>
         <div class="row" style="margin-bottom: 0;">
@@ -294,26 +363,31 @@
         </div>
       </div>
 
-      <div class="card" style="margin-bottom: 1.5rem;">
-        <div class="card-title" style="margin-bottom: 0.75rem; color: var(--primary);">📊 Récord de Posiciones en Fechas Consultadas</div>
-        <div class="rt-wrap">
-          <table class="rt" id="history-records-table"></table>
+      <!-- CUADRO DE RÉCORD DE POSICIONES INTERACTIVO CON PDF -->
+      <div class="card" id="record-card-container" style="margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 8px;">
+          <div class="card-title" style="margin-bottom: 0; color: var(--primary);">📊 Récord de Posiciones en Fechas Consultadas</div>
+          <button class="btn-secondary" style="padding: 6px 12px; font-size: 12px; font-weight: bold; background: #F1F5F9; border-color: #CBD5E1;" onclick="printRecordTableOnly()">📄 Guardar Récord en PDF</button>
         </div>
+        <div class="rt-wrap"><table class="rt" id="history-records-table"></table></div>
       </div>
 
       <div class="section-hdr">
-        <div class="section-title">Historial Clínico de Partidas</div>
+        <div class="section-title">Historial de Partidas</div>
       </div>
       <div id="history-list"></div>
     </div>
 
+    <!-- VISTA DETALLE DE CADA PARTIDA -->
     <div id="history-detail" class="section">
       <div class="section-hdr">
-        <div class="section-title" id="hd-title"></div>
-        <div style="display:flex; flex-wrap: wrap; gap:10px; margin-top:6px; width:100%">
-          <button class="btn-secondary" style="flex:1; min-width: 140px;" onclick="closeHistoryDetail()">← Volver</button>
-          <button class="btn-primary" style="flex:1; min-width: 160px; background:#D97706;" id="hd-edit-btn">✏️ Editar Partida</button>
-          <button class="btn-danger" style="flex:1; min-width: 160px;" id="hd-delete-btn">🗑️ Eliminar Partida</button>
+        <div>
+          <div class="section-title" id="hd-title"></div>
+        </div>
+        <div class="actions-container-bar" style="display:flex; flex-wrap: wrap; gap:8px; margin-top:6px; width:100%">
+          <button class="btn-secondary" style="flex:1; min-width: 100px;" onclick="closeHistoryDetail()">← Volver</button>
+          <button class="btn-primary" style="flex:1; min-width: 120px; background:#D97706;" id="hd-edit-btn">✏️ Editar</button>
+          <button class="btn-danger" style="flex:1; min-width: 120px;" id="hd-delete-btn">🗑️ Eliminar</button>
         </div>
       </div>
       <div class="scorecard-wrap"><table class="sc" id="hd-table"></table></div>
@@ -326,33 +400,17 @@
 <script>
 const FIREBASE_URL = "https://golf-scorecard-rd-default-rtdb.firebaseio.com/"; 
 
-let appState = {
-  savedPlayers: [],
-  courses: [],
-  games: []
-};
-
-let activeGame = {
-  id: null,
-  players: [],
-  course: null,
-  matchName: '',
-  matchDate: '',
-  scores: {}
-};
-
+let appState = { savedPlayers: [], courses: [], games: [] };
+let activeGame = { id: null, players: [], course: null, matchName: '', matchDate: '', scores: {} };
 let currentFormRows = [];
 let editingCourseId = null;
 let editingPlayerCode = null;
 
-function generateCode(prefix) {
-  return prefix + '-' + Math.random().toString(36).substr(2, 5).toUpperCase();
-}
+function generateCode(prefix) { return prefix + '-' + Math.random().toString(36).substr(2, 5).toUpperCase(); }
 
 function showStatusBanner(text, time = 2000) {
   const banner = document.getElementById('cloud-status');
-  banner.textContent = text;
-  banner.style.display = 'block';
+  banner.textContent = text; banner.style.display = 'block';
   setTimeout(() => { banner.style.display = 'none'; }, time);
 }
 
@@ -360,16 +418,9 @@ async function loadFromStorage() {
   try {
     const response = await fetch(`${FIREBASE_URL}golf_data.json`);
     const data = await response.json();
-    if (data) {
-      appState = data;
-    } else {
-      setDefaultData();
-      await saveToStorage();
-    }
-  } catch(e) {
-    console.error("Error conectando a la nube", e);
-    setDefaultData();
-  }
+    if (data) appState = data;
+    else { setDefaultData(); await saveToStorage(); }
+  } catch(e) { console.error(e); setDefaultData(); }
   ensureDataStructures();
 }
 
@@ -377,19 +428,14 @@ async function saveToStorage() {
   ensureDataStructures();
   try {
     document.getElementById('cloud-status').style.display = 'block';
-    document.getElementById('cloud-status').textContent = "Sincronizando con la nube...";
-    
+    document.getElementById('cloud-status').textContent = "Sincronizando...";
     await fetch(`${FIREBASE_URL}golf_data.json`, {
       method: 'PUT',
       body: JSON.stringify(appState),
       headers: { 'Content-Type': 'application/json' }
     });
-    
-    showStatusBanner("☁️ Sincronizado con éxito");
-  } catch(e) {
-    console.error("Error al guardar en la nube", e);
-    showStatusBanner("❌ Error de conexión");
-  }
+    showStatusBanner("☁️ Sincronizado");
+  } catch(e) { showStatusBanner("❌ Error de conexión"); }
 }
 
 function setDefaultData() {
@@ -409,41 +455,34 @@ function ensureDataStructures() {
   if(!appState.savedPlayers) appState.savedPlayers = [];
   if(!appState.courses) appState.courses = [];
   if(!appState.games) appState.games = [];
-  
-  appState.savedPlayers.forEach(p => {
-    if (p.initialHcp === undefined) {
-      p.initialHcp = p.hcp || 0;
-    }
-  });
+  appState.savedPlayers.forEach(p => { if (p.initialHcp === undefined) p.initialHcp = p.hcp || 0; });
 }
 
 function showTab(tab) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  
   document.getElementById(`tab-btn-${tab}`).classList.add('active');
   document.getElementById(`tab-${tab}`).classList.add('active');
-  
-  if (tab === 'nueva') { backToSetup(); }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  if (tab === 'nueva') backToSetup();
   if (tab === 'campos') { cancelCourseEdit(); renderCamposTab(); }
   if (tab === 'jugadores') { cancelPlayerEdit(); renderJugadoresTab(); }
   if (tab === 'historial') { clearHistoryFilters(); closeHistoryDetail(); renderHistoryList(); }
 }
 
+// ARREGLO: Mapear el hándicap actual para que esté disponible en las estadísticas
 function calculatePlayerRecordsFromGames(gamesList) {
   let records = {};
-  
-  appState.savedPlayers.forEach(p => {
-    records[p.code] = { name: p.name, 1: 0, 2: 0, 3: 0, otros: 0, jugadas: 0 };
-  });
-
+  appState.savedPlayers.forEach(p => { records[p.code] = { name: p.name, hcpActual: p.hcp, 1: 0, 2: 0, 3: 0, otros: 0, jugadas: 0 }; });
   gamesList.forEach(g => {
     if (g.results && g.results.length > 0) {
       let sorted = [...g.results].sort((a,b) => a.total - b.total);
       sorted.forEach((r, idx) => {
         let pos = idx + 1;
         if (!records[r.code]) {
-          records[r.code] = { name: r.name, 1: 0, 2: 0, 3: 0, otros: 0, jugadas: 0 };
+          const originalPlayer = appState.savedPlayers.find(sp => sp.code === r.code);
+          records[r.code] = { name: r.name, hcpActual: originalPlayer ? originalPlayer.hcp : (r.hcpIdx || 0), 1: 0, 2: 0, 3: 0, otros: 0, jugadas: 0 };
         }
         records[r.code].jugadas++;
         if (pos === 1) records[r.code][1]++;
@@ -460,17 +499,12 @@ function generateParsForm() {
   const holes = parseInt(document.getElementById('course-holes').value);
   const g1 = document.getElementById('grid-pars-1');
   const g2 = document.getElementById('grid-pars-2');
-  
-  g1.innerHTML = '';
-  g2.innerHTML = '';
-  
+  g1.innerHTML = ''; g2.innerHTML = '';
   for(let i=1; i<=9; i++) { g1.appendChild(createParInputCell(i)); }
   if(holes === 18) {
     g2.style.display = 'grid';
     for(let i=10; i<=18; i++) { g2.appendChild(createParInputCell(i)); }
-  } else {
-    g2.style.display = 'none';
-  }
+  } else { g2.style.display = 'none'; }
   recalcTotalParSum();
 }
 
@@ -493,311 +527,214 @@ async function saveNewCourse() {
   const totalPar = parseInt(document.getElementById('course-total-par').value);
   if(!name) { alert('Asigna un nombre al campo de golf'); return; }
   
-  let holePars = [];
-  let valid = true;
+  let holePars = []; let valid = true;
   document.querySelectorAll('.c-par-val').forEach(input => {
-    let val = parseInt(input.value);
-    if(!val || val < 3 || val > 5) valid = false;
+    let val = parseInt(input.value); if(!val || val < 3 || val > 5) valid = false;
     holePars.push(val);
   });
-  
   if(!valid) { alert('Por favor, ingresa pares válidos.'); return; }
   
   if (editingCourseId) {
-    const courseIndex = appState.courses.findIndex(c => c.id === editingCourseId);
-    if (courseIndex > -1) {
-      appState.courses[courseIndex] = { id: editingCourseId, name: name, holes: holes, totalPar: totalPar, pars: holePars };
-    }
+    const idx = appState.courses.findIndex(c => c.id === editingCourseId);
+    if (idx > -1) appState.courses[idx] = { id: editingCourseId, name: name, holes: holes, totalPar: totalPar, pars: holePars };
     editingCourseId = null;
   } else {
-    const newCourse = { id: generateCode('CRS'), name: name, holes: holes, totalPar: totalPar, pars: holePars };
-    appState.courses.push(newCourse);
+    appState.courses.push({ id: generateCode('CRS'), name: name, holes: holes, totalPar: totalPar, pars: holePars });
   }
-  
-  await saveToStorage();
-  cancelCourseEdit();
-  renderCamposTab();
+  await saveToStorage(); cancelCourseEdit(); renderCamposTab();
 }
 
 function editCourse(id) {
-  const course = appState.courses.find(c => c.id === id);
-  if (!course) return;
-  
+  const course = appState.courses.find(c => c.id === id); if (!course) return;
   editingCourseId = id;
   document.getElementById('course-form-title').textContent = "✏️ Editar Campo de Golf";
   document.getElementById('course-name').value = course.name;
   document.getElementById('course-holes').value = course.holes;
-  
   generateParsForm();
-  
   const inputs = document.querySelectorAll('.c-par-val');
-  inputs.forEach((input, index) => {
-    if (course.pars[index] !== undefined) {
-      input.value = course.pars[index];
-    }
-  });
-  
+  inputs.forEach((input, i) => { if (course.pars[i] !== undefined) input.value = course.pars[i]; });
   recalcTotalParSum();
   
-  const actionsZone = document.getElementById('course-form-actions');
-  actionsZone.innerHTML = `
+  document.getElementById('course-form-actions').innerHTML = `
     <div style="display:flex; gap:10px; width:100%;">
       <button class="btn-primary" style="flex:1;" onclick="saveNewCourse()">Actualizar Campo</button>
       <button class="btn-secondary" style="flex:1;" onclick="cancelCourseEdit()">Cancelar</button>
     </div>
-    <button class="btn-danger" style="width:100%; margin-top:5px;" onclick="deleteCourse('${id}')">⚠️ Eliminar Campo Permanentemente</button>
+    <button class="btn-danger" style="width:100%; margin-top:5px;" onclick="deleteCourse('${id}')">⚠️ Eliminar Campo</button>
   `;
-  
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function cancelCourseEdit() {
   editingCourseId = null;
   document.getElementById('course-form-title').textContent = "Registrar Campo de Golf";
-  document.getElementById('course-name').value = '';
-  document.getElementById('course-holes').value = '18';
+  document.getElementById('course-name').value = ''; document.getElementById('course-holes').value = '18';
   generateParsForm();
-  
-  document.getElementById('course-form-actions').innerHTML = `
-    <button class="btn-primary" style="width:100%;" onclick="saveNewCourse()">Guardar Campo de Golf</button>
-  `;
+  document.getElementById('course-form-actions').innerHTML = `<button class="btn-primary" style="width:100%;" onclick="saveNewCourse()">Guardar Campo de Golf</button>`;
 }
 
 function renderCamposTab() {
   if (!editingCourseId) generateParsForm();
   const list = document.getElementById('courses-list-render');
-  if(appState.courses.length === 0) {
-    list.innerHTML = '<div style="padding:15px; color:var(--text-muted);">No hay campos creados todavía.</div>';
-    return;
-  }
+  if(appState.courses.length === 0) { list.innerHTML = '<div style="padding:15px; color:var(--text-muted);">No hay campos creados.</div>'; return; }
   list.innerHTML = appState.courses.map(c => 
     `<div class="admin-item">
-      <div>
-        <strong style="color: var(--text-main)">⛳ ${c.name}</strong> <span style="font-size:12px">(${c.holes}H, Par ${c.totalPar})</span>
-      </div>
-      <button class="btn-secondary" style="padding: 6px 12px; font-size:11px; font-weight:600;" onclick="editCourse('${c.id}')">Editar</button>
+      <div><strong>⛳ ${c.name}</strong> <span style="font-size:12px">(${c.holes}H, Par ${c.totalPar})</span></div>
+      <button class="btn-secondary" style="padding: 6px 12px; font-size:11px;" onclick="editCourse('${c.id}')">Editar</button>
     </div>`
   ).join('');
 }
 
 async function deleteCourse(id) {
-  if(!confirm('¿Seguro que deseas eliminar este campo?')) return;
+  if(!confirm('¿Eliminar este campo?')) return;
   appState.courses = appState.courses.filter(c => c.id !== id);
-  await saveToStorage();
-  cancelCourseEdit();
-  renderCamposTab();
+  await saveToStorage(); cancelCourseEdit(); renderCamposTab();
 }
 
 async function saveDirectPlayer() {
   const name = document.getElementById('direct-p-name').value.trim();
   const hcp = parseFloat(document.getElementById('direct-p-hcp').value) || 0;
-  if(!name) { alert('Introduce el nombre del jugador'); return; }
+  if(!name) { alert('Introduce el nombre'); return; }
   
   if (editingPlayerCode) {
-    const playerIndex = appState.savedPlayers.findIndex(p => p.code === editingPlayerCode);
-    if (playerIndex > -1) {
-      appState.savedPlayers[playerIndex].name = name;
-      appState.savedPlayers[playerIndex].hcp = hcp;
-      appState.savedPlayers[playerIndex].initialHcp = hcp; 
-    }
+    const idx = appState.savedPlayers.findIndex(p => p.code === editingPlayerCode);
+    if (idx > -1) { appState.savedPlayers[idx].name = name; appState.savedPlayers[idx].hcp = hcp; appState.savedPlayers[idx].initialHcp = hcp; }
     editingPlayerCode = null;
   } else {
     appState.savedPlayers.push({ code: generateCode('PLY'), name: name, hcp: hcp, initialHcp: hcp });
   }
-  
-  await saveToStorage();
-  cancelPlayerEdit();
-  renderJugadoresTab();
+  await saveToStorage(); cancelPlayerEdit(); renderJugadoresTab();
 }
 
 function editPlayer(code) {
-  const player = appState.savedPlayers.find(p => p.code === code);
-  if (!player) return;
-  
+  const player = appState.savedPlayers.find(p => p.code === code); if (!player) return;
   editingPlayerCode = code;
   document.getElementById('player-form-title').textContent = "✏️ Editar Datos del Jugador";
   document.getElementById('direct-p-name').value = player.name;
   document.getElementById('direct-p-hcp').value = player.hcp;
   
-  const actionsZone = document.getElementById('player-form-actions');
-  actionsZone.innerHTML = `
+  document.getElementById('player-form-actions').innerHTML = `
     <div style="display:flex; gap:10px; width:100%;">
-      <button class="btn-primary" style="flex:1;" onclick="saveDirectPlayer()">Actualizar Jugador</button>
+      <button class="btn-primary" style="flex:1;" onclick="saveDirectPlayer()">Actualizar</button>
       <button class="btn-secondary" style="flex:1;" onclick="cancelPlayerEdit()">Cancelar</button>
     </div>
-    <button class="btn-danger" style="width:100%; margin-top:5px;" onclick="deletePlayer('${code}')">⚠️ Eliminar Jugador Permanentemente</button>
+    <button class="btn-danger" style="width:100%; margin-top:5px;" onclick="deletePlayer('${code}')">⚠️ Eliminar Jugador</button>
   `;
-  
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function cancelPlayerEdit() {
   editingPlayerCode = null;
   document.getElementById('player-form-title').textContent = "Registrar Nuevo Jugador Fijo";
-  document.getElementById('direct-p-name').value = '';
-  document.getElementById('direct-p-hcp').value = '0';
-  
-  document.getElementById('player-form-actions').innerHTML = `
-    <button class="btn-primary" style="width:100%" onclick="saveDirectPlayer()">Registrar Jugador</button>
-  `;
+  document.getElementById('direct-p-name').value = ''; document.getElementById('direct-p-hcp').value = '0';
+  document.getElementById('player-form-actions').innerHTML = `<button class="btn-primary" style="width:100%" onclick="saveDirectPlayer()">Registrar Jugador</button>`;
 }
 
 async function deletePlayer(code) {
-  if (!confirm('¿Seguro que deseas eliminar permanentemente a este jugador de la base de datos?')) return;
+  if (!confirm('¿Eliminar jugador?')) return;
   appState.savedPlayers = appState.savedPlayers.filter(p => p.code !== code);
-  await saveToStorage();
-  cancelPlayerEdit();
-  renderJugadoresTab();
+  await saveToStorage(); cancelPlayerEdit(); renderJugadoresTab();
 }
 
 function renderJugadoresTab() {
   const list = document.getElementById('players-list-render');
-  if(appState.savedPlayers.length === 0) {
-    list.innerHTML = '<div style="padding:15px; color:var(--text-muted);">No hay jugadores registrados.</div>';
-    return;
-  }
-  
+  if(appState.savedPlayers.length === 0) { list.innerHTML = '<div style="padding:15px; color:var(--text-muted);">No hay jugadores.</div>'; return; }
   const stats = calculatePlayerRecordsFromGames(appState.games);
-
   list.innerHTML = appState.savedPlayers.map(p => {
     const st = stats[p.code] || { 1: 0, 2: 0, 3: 0, otros: 0, jugadas: 0 };
-    const hcpAMostrar = (st.jugadas === 0) ? (p.initialHcp !== undefined ? p.initialHcp : p.hcp) : p.hcp;
-
     return `<div class="admin-item">
       <div>
-        <strong style="color:var(--text-main)">👤 ${p.name}</strong> <span style="font-size:12px">(Hcp Index Actual: ${hcpAMostrar})</span>
-        <div class="player-medals">
-          <span>🥇 1ro: <b>${st[1]}</b></span> · 
-          <span>🥈 2do: <b>${st[2]}</b></span> · 
-          <span>🥉 3ro: <b>${st[3]}</b></span> · 
-          <span>🎖️ Otros: <b>${st.otros}</b></span>
-        </div>
+        <strong>👤 ${p.name}</strong> <span style="font-size:12px">(Hcp Index: ${st.jugadas === 0 ? (p.initialHcp ?? p.hcp) : p.hcp})</span>
+        <div class="player-medals"><span>🥇 1ro: <b>${st[1]}</b></span> · <span>🥈 2do: <b>${st[2]}</b></span> · <span>🥉 3ro: <b>${st[3]}</b></span></div>
       </div>
-      <button class="btn-secondary" style="padding: 6px 12px; font-size:11px; font-weight:600;" onclick="editPlayer('${p.code}')">Editar</button>
+      <button class="btn-secondary" style="padding: 6px 12px; font-size:11px;" onclick="editPlayer('${p.code}')">Editar</button>
     </div>`;
   }).join('');
 }
 
 function populateSetupSelectors() {
-  const cSel = document.getElementById('match-course-select');
-  cSel.innerHTML = appState.courses.map(c => `<option value="${c.id}">${c.name} (${c.holes}H - Par ${c.totalPar})</option>`).join('');
+  document.getElementById('match-course-select').innerHTML = appState.courses.map(c => `<option value="${c.id}">${c.name} (${c.holes}H - Par ${c.totalPar})</option>`).join('');
 }
 
 function addPlayerRow() {
-  const list = document.getElementById('players-list');
-  const idx = currentFormRows.length;
-  
-  const wrapper = document.createElement('div');
-  wrapper.className = 'player-row';
-  wrapper.id = `pf-row-${idx}`;
+  const list = document.getElementById('players-list'); const idx = currentFormRows.length;
+  const wrapper = document.createElement('div'); wrapper.className = 'player-row'; wrapper.id = `pf-row-${idx}`;
   
   let optionsHtml = `<option value="">-- Seleccionar Jugador --</option>`;
-  appState.savedPlayers.forEach(p => {
-    optionsHtml += `<option value="${p.code}">${p.name} (Hcp ${p.hcp})</option>`;
-  });
+  appState.savedPlayers.forEach(p => { optionsHtml += `<option value="${p.code}">${p.name} (Hcp ${p.hcp})</option>`; });
   optionsHtml += `<option value="NEW_OPTION">➕ Crear nuevo en línea...</option>`;
   
   wrapper.innerHTML = `
     <select id="sel-pcode-${idx}" onchange="handlePlayerSelectChange(${idx})">${optionsHtml}</select>
     <input type="text" class="p-inline-name" id="inline-name-${idx}" style="display:none;" placeholder="Nombre...">
-    <span class="lbl">Hcp:</span>
-    <input type="number" id="inline-hcp-${idx}" min="0" max="54" step="0.1" value="0">
+    <span class="lbl">Hcp:</span> <input type="number" id="inline-hcp-${idx}" min="0" max="54" step="0.1" value="0">
     <button class="btn-icon" style="padding:2px 6px;" onclick="removeSetupPlayerRow(${idx})">×</button>
   `;
-  
-  list.appendChild(wrapper);
-  currentFormRows.push({ index: idx, active: true });
+  list.appendChild(wrapper); currentFormRows.push({ index: idx, active: true });
 }
 
 function handlePlayerSelectChange(idx) {
   const select = document.getElementById(`sel-pcode-${idx}`);
   const inputName = document.getElementById(`inline-name-${idx}`);
   const inputHcp = document.getElementById(`inline-hcp-${idx}`);
-  
   if (select.value === "NEW_OPTION") {
-    select.style.display = 'none';
-    inputName.style.display = 'block';
-    inputName.focus();
-    inputHcp.value = '0';
+    select.style.display = 'none'; inputName.style.display = 'block'; inputName.focus(); inputHcp.value = '0';
   } else if (select.value !== "") {
     inputName.style.display = 'none';
-    const player = appState.savedPlayers.find(p => p.code === select.value);
-    if(player) inputHcp.value = player.hcp || 0;
-  } else {
-    inputName.style.display = 'none';
-    inputHcp.value = '0';
-  }
+    const p = appState.savedPlayers.find(sp => sp.code === select.value); if(p) inputHcp.value = p.hcp || 0;
+  } else { inputName.style.display = 'none'; inputHcp.value = '0'; }
 }
 
 function removeSetupPlayerRow(idx) {
-  const target = document.getElementById(`pf-row-${idx}`);
-  if(target) target.remove();
-  const item = currentFormRows.find(r => r.index === idx);
-  if(item) item.active = false;
+  const target = document.getElementById(`pf-row-${idx}`); if(target) target.remove();
+  const item = currentFormRows.find(r => r.index === idx); if(item) item.active = false;
 }
 
 async function startGame() {
   const selectedCourseId = document.getElementById('match-course-select').value;
-  const course = appState.courses.find(c => c.id === selectedCourseId);
-  if(!course) { alert('Selecciona o crea un campo de golf primero'); return; }
+  const course = appState.courses.find(c => c.id === selectedCourseId); if(!course) { alert('Crea un campo primero'); return; }
   
-  let participants = [];
-  let dynamicPlayersAdded = false;
-  
+  let participants = []; let dynamicPlayersAdded = false;
   for(let row of currentFormRows) {
     if(!row.active) continue;
-    
     const select = document.getElementById(`sel-pcode-${row.index}`);
     const inputName = document.getElementById(`inline-name-${row.index}`);
     const inputHcp = document.getElementById(`inline-hcp-${row.index}`);
     
-    let pCode = select.value;
-    let pName = '';
-    let pHcp = parseFloat(inputHcp.value) || 0;
+    let pCode = select.value; let pName = ''; let pHcp = parseFloat(inputHcp.value) || 0;
     
     if(select.style.display === 'none' || pCode === "NEW_OPTION") {
-      pName = inputName.value.trim();
-      if(!pName) continue;
-      pCode = generateCode('PLY');
-      appState.savedPlayers.push({ code: pCode, name: pName, hcp: pHcp, initialHcp: pHcp });
+      pName = inputName.value.trim(); if(!pName) continue;
+      pCode = generateCode('PLY'); appState.savedPlayers.push({ code: pCode, name: pName, hcp: pHcp, initialHcp: pHcp });
       dynamicPlayersAdded = true;
     } else if(pCode !== "") {
-      const match = appState.savedPlayers.find(p => p.code === pCode);
-      pName = match ? match.name : 'Desconocido';
-    } else {
-      continue;
-    }
-    
+      const match = appState.savedPlayers.find(p => p.code === pCode); pName = match ? match.name : 'Desconocido';
+    } else { continue; }
     participants.push({ code: pCode, name: pName, hcp: pHcp });
   }
   
-  if(participants.length === 0) { alert('Añade por lo menos un jugador.'); return; }
+  if(participants.length === 0) { alert('Añade un jugador.'); return; }
   if(dynamicPlayersAdded) { await saveToStorage(); }
   
-  activeGame.players = participants;
-  activeGame.course = course;
+  activeGame.players = participants; activeGame.course = course;
   activeGame.matchName = document.getElementById('match-name').value.trim() || 'Ronda Regular';
   activeGame.matchDate = document.getElementById('match-date').value || new Date().toISOString().split('T')[0];
   
   if (!activeGame.id) {
-    activeGame.id = `GAME-${Date.now()}`;
-    activeGame.scores = {};
+    activeGame.id = `GAME-${Date.now()}`; activeGame.scores = {};
     participants.forEach(p => { activeGame.scores[p.code] = new Array(course.holes).fill(''); });
   }
   
   document.getElementById('setup-sec').style.display = 'none';
   document.getElementById('scorecard-sec').classList.add('active');
-  
   document.getElementById('sc-title').textContent = activeGame.matchName;
   document.getElementById('sc-meta').textContent = `Campo: ${course.name} · ${course.holes} Hoyos`;
-  
   buildScorecardMatrix();
 }
 
 function buildScorecardMatrix() {
   const { players, course, scores } = activeGame;
-  const table = document.getElementById('sc-table');
-  const is18 = course.holes === 18;
+  const table = document.getElementById('sc-table'); const is18 = course.holes === 18;
   
   let html = '<thead><tr><th class="pn">Jugador</th>';
   for(let h=0; h<course.holes; h++) {
@@ -818,36 +755,26 @@ function buildScorecardMatrix() {
   if(is18) html += `<td class="par-r tc">${pIn}</td>`;
   html += `<td class="par-r tc">${course.totalPar}</td></tr>`;
   
-  players.forEach((p, pi) => {
+  players.forEach(p => {
     html += `<tr><td class="pnc">${p.name}<span class="c-info">Hcp ${p.hcp}</span></td>`;
     for(let h=0; h<course.holes; h++) {
       const currentVal = scores[p.code] ? scores[p.code][h] : '';
-      html += `<td class="${is18 && h === 8 ? 'hsep' : ''}">
-        <input class="si" type="number" min="1" max="20" value="${currentVal||''}" data-pcode="${p.code}" data-hole="${h}" oninput="registerScore(this)">
-      </td>`;
-      if(is18 && h === 8) { html += `<td class="tc" id="out-cell-${p.code}">0</td>`; }
+      html += `<td class="${is18 && h === 8 ? 'hsep' : ''}"><input class="si" type="number" min="1" value="${currentVal||''}" data-pcode="${p.code}" data-hole="${h}" oninput="registerScore(this)"></td>`;
+      if(is18 && h === 8) html += `<td class="tc" id="out-cell-${p.code}">0</td>`;
     }
     if(is18) html += `<td class="tc" id="in-cell-${p.code}">0</td>`;
     html += `<td class="tc" style="font-weight:700" id="total-cell-${p.code}">0</td></tr>`;
   });
-  
-  html += '</tbody>';
-  table.innerHTML = html;
-  recalcLiveMatrixTotals();
+  table.innerHTML = html + '</tbody>'; recalcLiveMatrixTotals();
 }
 
 function registerScore(input) {
-  const code = input.dataset.pcode;
-  const hole = parseInt(input.dataset.hole);
-  if (!activeGame.scores[code]) activeGame.scores[code] = [];
+  const code = input.dataset.pcode; const hole = parseInt(input.dataset.hole);
   activeGame.scores[code][hole] = input.value ? parseInt(input.value) : '';
-  
-  const parDelHoyo = activeGame.course.pars[hole] || 4;
-  const cell = input.parentElement;
-  cell.classList.remove('c-eagle','c-birdie','c-bogey','c-dbl');
+  const cell = input.parentElement; cell.classList.remove('c-eagle','c-birdie','c-bogey','c-dbl');
   
   if(input.value) {
-    const diff = parseInt(input.value) - parDelHoyo;
+    const diff = parseInt(input.value) - (activeGame.course.pars[hole] || 4);
     if(diff <= -2) cell.classList.add('c-eagle');
     else if(diff === -1) cell.classList.add('c-birdie');
     else if(diff === 1) cell.classList.add('c-bogey');
@@ -857,214 +784,123 @@ function registerScore(input) {
 }
 
 function recalcLiveMatrixTotals() {
-  const { players, course, scores } = activeGame;
-  players.forEach(p => {
-    const sArr = scores[p.code] || [];
+  activeGame.players.forEach(p => {
+    const sArr = activeGame.scores[p.code] || [];
     let outSum = 0, inSum = 0, totSum = 0;
-    for(let h=0; h<course.holes; h++) {
-      let val = parseInt(sArr[h]) || 0;
-      totSum += val;
+    for(let h=0; h<activeGame.course.holes; h++) {
+      let val = parseInt(sArr[h]) || 0; totSum += val;
       if(h < 9) outSum += val; else inSum += val;
     }
-    const outEl = document.getElementById(`out-cell-${p.code}`);
-    const inEl = document.getElementById(`in-cell-${p.code}`);
-    const totEl = document.getElementById(`total-cell-${p.code}`);
-    if(outEl) outEl.textContent = outSum || '';
-    if(inEl) inEl.textContent = inSum || '';
-    if(totEl) totEl.textContent = totSum || '';
+    if(document.getElementById(`out-cell-${p.code}`)) document.getElementById(`out-cell-${p.code}`).textContent = outSum || '';
+    if(document.getElementById(`in-cell-${p.code}`)) document.getElementById(`in-cell-${p.code}`).textContent = inSum || '';
+    document.getElementById(`total-cell-${p.code}`).textContent = totSum || '';
   });
 }
 
 async function showResults() {
   let finalResults = activeGame.players.map(p => {
     const totalStrokes = activeGame.scores[p.code].reduce((a, b) => a + (parseInt(b) || 0), 0);
-    
     let hcpNeto = null;
     if (totalStrokes > 0) {
-      // SI EL CAMPO ES DE 9 HOYOS: Escalamos a 18 para comparar de manera equitativa con su Handicap Index original
-      if (activeGame.course.holes === 9) {
-        const golpesProyectados18 = totalStrokes * 2;
-        const parProyectado18 = activeGame.course.totalPar * 2;
-        hcpNeto = +((golpesProyectados18 - p.hcp - parProyectado18) * 0.96).toFixed(1);
-      } else {
-        // SI EL CAMPO ES DE 18 HOYOS: Se calcula con la fórmula estándar fija
-        hcpNeto = +((totalStrokes - p.hcp - activeGame.course.totalPar) * 0.96).toFixed(1);
-      }
+      if (activeGame.course.holes === 9) hcpNeto = +(((totalStrokes * 2) - p.hcp - (activeGame.course.totalPar * 2)) * 0.96).toFixed(1);
+      else hcpNeto = +((totalStrokes - p.hcp - activeGame.course.totalPar) * 0.96).toFixed(1);
     }
-    
     if (hcpNeto !== null) {
-      const globalPlayer = appState.savedPlayers.find(sp => sp.code === p.code);
-      if (globalPlayer) {
-        globalPlayer.hcp = hcpNeto; 
-      }
+      const gp = appState.savedPlayers.find(sp => sp.code === p.code); if (gp) gp.hcp = hcpNeto;
     }
-    
     return { code: p.code, name: p.name, total: totalStrokes, hcpNeto: hcpNeto, hcpIdx: p.hcp };
   }).filter(r => r.total > 0).sort((a,b) => a.total - b.total);
 
-  if(finalResults.length === 0) { alert('Escribe puntajes antes de finalizar.'); return; }
+  if(finalResults.length === 0) { alert('Ingresa scores.'); return; }
   
   const gameRecord = {
-    id: activeGame.id,
-    date: activeGame.matchDate,
-    name: activeGame.matchName,
-    course: {
-      id: activeGame.course.id,
-      name: activeGame.course.name,
-      holes: activeGame.course.holes,
-      totalPar: activeGame.course.totalPar,
-      pars: [...activeGame.course.pars]
-    },
+    id: activeGame.id, date: activeGame.matchDate, name: activeGame.matchName,
+    course: { id: activeGame.course.id, name: activeGame.course.name, holes: activeGame.course.holes, totalPar: activeGame.course.totalPar, pars: [...activeGame.course.pars] },
     players: activeGame.players.map(p => ({ code: p.code, name: p.name, hcp: p.hcp })),
-    scores: JSON.parse(JSON.stringify(activeGame.scores)),
-    results: finalResults
+    scores: JSON.parse(JSON.stringify(activeGame.scores)), results: finalResults
   };
   
-  const matchIndex = appState.games.findIndex(g => g.id === gameRecord.id);
-  if (matchIndex > -1) {
-    appState.games[matchIndex] = gameRecord;
-  } else {
-    appState.games.unshift(gameRecord);
-  }
+  const idx = appState.games.findIndex(g => g.id === gameRecord.id);
+  if (idx > -1) appState.games[idx] = gameRecord; else appState.games.unshift(gameRecord);
   
   await saveToStorage();
-  
   document.getElementById('scorecard-sec').classList.remove('active');
-  document.getElementById('tab-nueva').querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('results-sec').classList.add('active');
-  
   document.getElementById('res-meta').textContent = `${gameRecord.date} · ${gameRecord.name}`;
   renderFinalDashboard(finalResults, 'res-cards', 'res-table', gameRecord.course.totalPar);
 }
 
 function renderFinalDashboard(results, cardsId, tableId, parDelCampo) {
-  const cards = document.getElementById(cardsId);
-  const table = document.getElementById(tableId);
+  const cards = document.getElementById(cardsId); const table = document.getElementById(tableId);
+  if (!results || results.length === 0) { cards.innerHTML = ''; table.innerHTML = ''; return; }
   
-  if (!results || results.length === 0) {
-    cards.innerHTML = '';
-    table.innerHTML = '';
-    return;
+  const w = results[0]; const diffPar = w.total - parDelCampo;
+  if(cards) {
+    cards.innerHTML = `
+      <div class="mc winner"><div class="ml">🏆 Ganador Absoluto</div><div class="mv">${w.name}</div><div class="ms">${w.total} Golpes (Hcp: ${w.hcpIdx})</div></div>
+      <div class="mc"><div class="ml">Mejor Score Neto</div><div class="mv">${w.total}</div><div class="ms">${diffPar >= 0 ? '+' : ''}${diffPar} vs Par</div></div>
+    `;
   }
   
-  const w = results[0];
-  const diffPar = w.total - parDelCampo;
-  cards.innerHTML = `
-    <div class="mc winner"><div class="ml">🏆 Ganador Absoluto</div><div class="mv">${w.name}</div><div class="ms">${w.total} Golpes (Hcp inicial: ${w.hcpIdx})</div></div>
-    <div class="mc"><div class="ml">Mejor Score Neto</div><div class="mv">${w.total}</div><div class="ms">${diffPar >= 0 ? '+' : ''}${diffPar} vs Par</div></div>
-  `;
-  
-  let html = `<thead><tr><th>Pos.</th><th>Jugador</th><th>Hcp Index</th><th>Golpes</th><th>vs Par</th><th>Nuevo Hándicap (Neto)</th></tr></thead><tbody>`;
+  let html = `<thead><tr><th>Pos.</th><th>Jugador</th><th>Hcp Index</th><th>Golpes</th><th>vs Par</th><th>Nuevo Hándicap</th></tr></thead><tbody>`;
   results.forEach((r, i) => {
     const diff = r.total - parDelCampo;
-    const diffStr = diff === 0 ? 'E' : diff > 0 ? `+${diff}` : `${diff}`;
-    html += `<tr>
-      <td><b style="color:var(--primary)">#${i+1}</b></td>
-      <td><strong>${r.name}</strong></td>
-      <td>${r.hcpIdx}</td>
-      <td><b>${r.total}</b></td>
-      <td>${diffStr}</td>
-      <td><b style="color:var(--primary)">${r.hcpNeto !== null ? r.hcpNeto : '—'}</b></td>
-    </tr>`;
+    html += `<tr><td><b>#${i+1}</b></td><td><strong>${r.name}</strong></td><td>${r.hcpIdx}</td><td><b>${r.total}</b></td><td>${diff === 0 ? 'E' : diff > 0 ? `+${diff}` : diff}</td><td><b>${r.hcpNeto ?? '—'}</b></td></tr>`;
   });
-  html += '</tbody>';
-  table.innerHTML = html;
+  table.innerHTML = html + '</tbody>';
 }
 
 function clearHistoryFilters() {
-  document.getElementById('filter-start-date').value = '';
-  document.getElementById('filter-end-date').value = '';
+  document.getElementById('filter-start-date').value = ''; document.getElementById('filter-end-date').value = '';
   renderHistoryList();
 }
 
+// ARREGLO: Renderizar la columna Hándicap Index al lado del nombre en la tabla de récord
 function renderFilteredRecordsTable(filteredGames) {
-  const tableEl = document.getElementById('history-records-table');
-  const stats = calculatePlayerRecordsFromGames(filteredGames);
-  
+  const tableEl = document.getElementById('history-records-table'); const stats = calculatePlayerRecordsFromGames(filteredGames);
   let activeRecords = Object.values(stats).filter(p => p.jugadas > 0);
+  if (activeRecords.length === 0) { tableEl.innerHTML = `<tbody><tr><td style="padding:15px; text-align:center; color:var(--text-muted);">Sin datos.</td></tr></tbody>`; return; }
   
-  if (activeRecords.length === 0) {
-    tableEl.innerHTML = `<tbody><tr><td style="padding:15px; text-align:center; color:var(--text-muted);">Sin participaciones registradas en este rango.</td></tr></tbody>`;
-    return;
-  }
-  
-  activeRecords.sort((a, b) => b[1] - a[1] || b[2] - a[2] || b[3] - a[3]);
-  
-  let html = `
-    <thead>
-      <tr>
-        <th>Jugador</th>
-        <th style="text-align:center;">Rondas</th>
-        <th style="text-align:center;">🥇 1ro</th>
-        <th style="text-align:center;">🥈 2do</th>
-        <th style="text-align:center;">🥉 3ro</th>
-        <th style="text-align:center;">🎖️ Otros</th>
-      </tr>
-    </thead>
-    <tbody>
-  `;
-  
+  activeRecords.sort((a, b) => b[1] - a[1] || b[2] - a[2]);
+  let html = `<thead><tr><th>Jugador</th><th style="text-align:center;">Hcp Index</th><th style="text-align:center;">Rondas</th><th style="text-align:center;">🥇 1ro</th><th style="text-align:center;">🥈 2do</th><th style="text-align:center;">🥉 3ro</th></tr></thead><tbody>`;
   activeRecords.forEach(p => {
-    html += `
-      <tr>
-        <td><strong>👤 ${p.name}</strong></td>
-        <td style="text-align:center;"><b>${p.jugadas}</b></td>
-        <td style="text-align:center; color:#D97706; font-weight:700;">${p[1]}</td>
-        <td style="text-align:center; color:#475569; font-weight:700;">${p[2]}</td>
-        <td style="text-align:center; color:#B45309; font-weight:700;">${p[3]}</td>
-        <td style="text-align:center; color:var(--text-muted);">${p.otros}</td>
-      </tr>
-    `;
+    html += `<tr><td><strong>👤 ${p.name}</strong></td><td style="text-align:center; font-weight:500;">${p.hcpActual}</td><td style="text-align:center;"><b>${p.jugadas}</b></td><td style="text-align:center; color:#D97706; font-weight:700;">${p[1]}</td><td style="text-align:center; color:#475569; font-weight:700;">${p[2]}</td><td style="text-align:center; color:#B45309; font-weight:700;">${p[3]}</td></tr>`;
   });
-  
-  html += '</tbody>';
-  tableEl.innerHTML = html;
+  tableEl.innerHTML = html + '</tbody>';
+}
+
+// ARREGLO: Función interactiva para imprimir EXCLUSIVAMENTE la tabla de récord en PDF
+function printRecordTableOnly() {
+  document.body.classList.add('print-record-only');
+  window.print();
+  // Quitar la clase justo después de abrir la ventana de impresión para no romper la app
+  setTimeout(() => {
+    document.body.classList.remove('print-record-only');
+  }, 1000);
 }
 
 function renderHistoryList() {
   const list = document.getElementById('history-list');
-  document.getElementById('history-main-sec').style.display = 'block';
-  document.getElementById('history-detail').classList.remove('active');
-  
-  const startDateVal = document.getElementById('filter-start-date').value;
-  const endDateVal = document.getElementById('filter-end-date').value;
+  document.getElementById('history-main-sec').style.display = 'block'; document.getElementById('history-detail').classList.remove('active');
   
   let filteredGames = [...appState.games];
-  
-  if(startDateVal) {
-    filteredGames = filteredGames.filter(g => g.date >= startDateVal);
-  }
-  if(endDateVal) {
-    filteredGames = filteredGames.filter(g => g.date <= endDateVal);
-  }
+  const sd = document.getElementById('filter-start-date').value; const ed = document.getElementById('filter-end-date').value;
+  if(sd) filteredGames = filteredGames.filter(g => g.date >= sd);
+  if(ed) filteredGames = filteredGames.filter(g => g.date <= ed);
   
   renderFilteredRecordsTable(filteredGames);
-  
-  if(filteredGames.length === 0) {
-    list.innerHTML = `<div class="empty-state">No se encontraron partidas en el rango de fechas seleccionado.</div>`;
-    return;
-  }
+  if(filteredGames.length === 0) { list.innerHTML = `<div class="empty-state">No se encontraron partidas.</div>`; return; }
   
   list.innerHTML = filteredGames.map(g => {
     const sortedResults = [...(g.results || [])].sort((a,b) => a.total - b.total);
-    
     const badges = sortedResults.map((r, idx) => {
-      let icon = '';
-      if(idx === 0) icon = '🥇 🏆 ';
-      else if(idx === 1) icon = '🥈 ';
-      else if(idx === 2) icon = '🥉 ';
-      else icon = '🎖️ ';
-      
-      return `<span class="hp-badge ${idx === 0 ? 'winner-badge' : ''}"><strong>#${idx + 1}</strong> ${icon}${r.name}: ${r.total}g</span>`;
+      return `<span class="hp-badge ${idx === 0 ? 'winner-badge' : ''}"><strong>#${idx + 1}</strong> ${idx===0?'🥇 ':idx===1?'🥈 ':idx===2?'🥉 ':'🎖️ '}${r.name} (Hcp ${r.hcpIdx}): ${r.total}g</span>`;
     }).join('');
     
     return `<div class="history-item">
       <div class="history-header">
-        <div>
-          <div class="history-date">${g.date} — <strong>${g.name}</strong></div>
-          <div class="history-meta">Campo: ${g.course ? g.course.name : 'N/A'}</div>
-        </div>
-        <button class="btn-secondary" style="padding: 6px 12px; font-size:12px; font-weight:600; border-color:var(--primary); color:var(--primary)" onclick="viewGameDetail('${g.id}')">Ver Tarjeta →</button>
+        <div><div class="history-date">${g.date} — <strong>${g.name}</strong></div><div class="history-meta">Campo: ${g.course ? g.course.name : 'N/A'}</div></div>
+        <button class="btn-secondary" style="padding: 6px 12px; font-size:12px; border-color:var(--primary); color:var(--primary)" onclick="viewGameDetail('${g.id}')">Ver Tarjeta →</button>
       </div>
       <div class="history-players">${badges}</div>
     </div>`;
@@ -1072,24 +908,15 @@ function renderHistoryList() {
 }
 
 function viewGameDetail(id) {
-  const game = appState.games.find(g => g.id === id);
-  if(!game) return;
-  
+  const game = appState.games.find(g => g.id === id); if(!game) return;
   document.getElementById('history-main-sec').style.display = 'none';
   document.getElementById('history-detail').classList.add('active');
+  document.getElementById('hd-title').textContent = `${game.date} - ${game.name} (${game.course.name})`;
   
-  document.getElementById('hd-title').textContent = `${game.date} - ${game.name}`;
+  document.getElementById('hd-edit-btn').onclick = () => loadGameToEdit(game.id);
+  document.getElementById('hd-delete-btn').onclick = () => deleteGameFromHistory(game.id);
   
-  const editBtn = document.getElementById('hd-edit-btn');
-  editBtn.onclick = () => loadGameToEdit(game.id);
-
-  const deleteBtn = document.getElementById('hd-delete-btn');
-  deleteBtn.onclick = () => deleteGameFromHistory(game.id);
-  
-  const table = document.getElementById('hd-table');
-  const c = game.course;
-  const is18 = c.holes === 18;
-  
+  const table = document.getElementById('hd-table'); const c = game.course; const is18 = c.holes === 18;
   let html = '<thead><tr><th class="pn">Jugador</th>';
   for(let h=0; h<c.holes; h++) {
     html += `<th class="${is18 && h === 8 ? 'hsep' : ''}">H${h+1}</th>`;
@@ -1112,63 +939,42 @@ function viewGameDetail(id) {
     const pScores = game.scores[p.code] || [];
     html += `<tr><td class="pnc">${p.name}<span class="c-info">Hcp ${p.hcp}</span></td>`;
     let oSum = 0, iSum = 0, tSum = 0;
-    
     for(let h=0; h<c.holes; h++) {
-      const v = parseInt(pScores[h]) || 0;
-      tSum += v;
+      const v = parseInt(pScores[h]) || 0; tSum += v;
       if(h < 9) oSum += v; else iSum += v;
       const diff = v - c.pars[h];
       const cls = !v ? '' : diff <= -2 ? 'c-eagle' : diff === -1 ? 'c-birdie' : diff === 1 ? 'c-bogey' : diff >= 2 ? 'c-dbl' : '';
-      
       html += `<td class="${is18 && h === 8 ? 'hsep' : ''} ${cls}">${v || '—'}</td>`;
       if(is18 && h === 8) html += `<td class="tc">${oSum || '—'}</td>`;
     }
     if(is18) html += `<td class="tc">${iSum || '—'}</td>`;
     html += `<td class="tc"><strong>${tSum || '—'}</strong></td></tr>`;
   });
-  
-  html += '</tbody>';
-  table.innerHTML = html;
-  
-  const sortedResults = [...(game.results || [])].sort((a,b) => a.total - b.total);
-  renderFinalDashboard(sortedResults, 'hd-cards', 'hd-res-table', c.totalPar);
+  table.innerHTML = html + '</tbody>';
+  renderFinalDashboard([...(game.results || [])].sort((a,b) => a.total - b.total), null, 'hd-res-table', c.totalPar);
 }
 
 function loadGameToEdit(gameId) {
-  const game = appState.games.find(g => g.id === gameId);
-  if (!game) return;
-
-  activeGame.id = game.id;
-  activeGame.matchDate = game.date;
-  activeGame.matchName = game.name;
-  
-  const fullCourse = appState.courses.find(c => c.id === game.course.id) || game.course;
-  activeGame.course = fullCourse;
-  
-  activeGame.players = [...game.players];
-  activeGame.scores = JSON.parse(JSON.stringify(game.scores));
+  const game = appState.games.find(g => g.id === gameId); if (!game) return;
+  activeGame.id = game.id; activeGame.matchDate = game.date; activeGame.matchName = game.name;
+  activeGame.course = appState.courses.find(c => c.id === game.course.id) || game.course;
+  activeGame.players = [...game.players]; activeGame.scores = JSON.parse(JSON.stringify(game.scores));
 
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('tab-btn-nueva').classList.add('active');
   document.getElementById('tab-nueva').classList.add('active');
-
   document.getElementById('setup-sec').style.display = 'none';
   document.getElementById('scorecard-sec').classList.add('active');
   document.getElementById('sc-title').textContent = activeGame.matchName;
-  document.getElementById('sc-meta').textContent = `Modificando Ronda · Campo: ${fullCourse.name}`;
-  
+  document.getElementById('sc-meta').textContent = `Modificando Ronda · Campo: ${activeGame.course.name}`;
   buildScorecardMatrix();
 }
 
 async function deleteGameFromHistory(gameId) {
-  if (!confirm("¿Seguro que deseas eliminar permanentemente esta partida del historial clínico?")) return;
-  
-  appState.games = appState.games.filter(g => g.id !== gameId);
-  await saveToStorage();
-  
-  closeHistoryDetail();
-  renderHistoryList();
+  if (!confirm("¿Eliminar esta partida?")) return;
+  appState.games = appState.games.filter(g => g.id !== gameId); await saveToStorage();
+  closeHistoryDetail(); renderHistoryList();
 }
 
 function closeHistoryDetail() {
@@ -1177,33 +983,19 @@ function closeHistoryDetail() {
 }
 
 function backToScorecard() {
-  document.getElementById('results-sec').classList.remove('active');
-  document.getElementById('scorecard-sec').classList.add('active');
+  document.getElementById('results-sec').classList.remove('active'); document.getElementById('scorecard-sec').classList.add('active');
 }
 
 function backToSetup() {
-  document.getElementById('scorecard-sec').classList.remove('active');
-  document.getElementById('results-sec').classList.remove('active');
+  document.getElementById('scorecard-sec').classList.remove('active'); document.getElementById('results-sec').classList.remove('active');
   document.getElementById('setup-sec').style.display = 'block';
-  
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('match-date').value = today;
-  document.getElementById('match-name').value = '';
-  document.getElementById('players-list').innerHTML = '';
-  
+  document.getElementById('match-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('match-name').value = ''; document.getElementById('players-list').innerHTML = '';
   activeGame = { id: null, players: [], course: null, matchName: '', matchDate: '', scores: {} };
-  currentFormRows = [];
-  populateSetupSelectors();
-  addPlayerRow();
-  addPlayerRow();
+  currentFormRows = []; populateSetupSelectors(); addPlayerRow(); addPlayerRow();
 }
 
-async function main() {
-  await loadFromStorage();
-  populateSetupSelectors();
-  backToSetup();
-}
-
+async function main() { await loadFromStorage(); populateSetupSelectors(); backToSetup(); }
 main();
 </script>
 </body>
