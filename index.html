@@ -802,7 +802,7 @@ async function showResults() {
     const totalStrokes = activeGame.scores[p.code].reduce((a, b) => a + (parseInt(b) || 0), 0);
     let hcpNeto = null;
     if (totalStrokes > 0) {
-      if (activeGame.course.holes === 9) hcpNeto = +(((totalStrokes * 2) - p.hcp - (activeGame.course.totalPar * 2)) * 0.96).toFixed(1);
+      if (activeGame.course.holes === 9) hcpNeto = +((totalStrokes - (p.hcp / 2) - activeGame.course.totalPar) * 1.92).toFixed(1);
       else hcpNeto = +((totalStrokes - p.hcp - activeGame.course.totalPar) * 0.96).toFixed(1);
     }
     if (hcpNeto !== null) {
