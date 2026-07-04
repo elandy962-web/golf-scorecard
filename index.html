@@ -4,6 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Golf Scorecard Manager Cloud</title>
+
+  <!-- PWA: permite instalar la app en Android (Chrome) como app nativa -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1D9E75">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="application-name" content="Golf Scorecard">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
   <style>
     :root {
       --primary: #1D9E75;
@@ -1042,6 +1050,13 @@ function backToSetup() {
 
 async function main() { await loadFromStorage(); populateSetupSelectors(); backToSetup(); }
 main();
+
+// Registro del Service Worker (requisito para que Chrome/Android permita instalar la app)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW no registrado:', err));
+  });
+}
 </script>
 </body>
 </html>
