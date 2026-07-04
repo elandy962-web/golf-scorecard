@@ -441,8 +441,8 @@ async function saveToStorage() {
 function setDefaultData() {
   appState = {
     savedPlayers: [
-      { code: 'PLY-JUAN1', name: 'Juan Pérez', hcp: 5, initialHcp: 5 },
-      { code: 'PLY-CARL2', name: 'Carlos Gomez', hcp: 12, initialHcp: 12 }
+      { code: 'PLY-JUAN1', name: 'Juan Pérez', hcp: 5, initialHcp: 5, hcpHistory: [] },
+      { code: 'PLY-CARL2', name: 'Carlos Gomez', hcp: 12, initialHcp: 12, hcpHistory: [] }
     ],
     courses: [
       { id: 'CRS-DEFAULT', name: 'Santiago Links', holes: 18, totalPar: 72, pars: [4,4,3,4,5,3,4,5,4,4,4,3,4,5,3,4,5,4] }
@@ -455,7 +455,36 @@ function ensureDataStructures() {
   if(!appState.savedPlayers) appState.savedPlayers = [];
   if(!appState.courses) appState.courses = [];
   if(!appState.games) appState.games = [];
-  appState.savedPlayers.forEach(p => { if (p.initialHcp === undefined) p.initialHcp = p.hcp || 0; });
+  appState.savedPlayers.forEach(p => {
+    if (p.initialHcp === undefined) p.initialHcp = p.hcp || 0;
+    if (!Array.isArray(p.hcpHistory)) p.hcpHistory = [];
+  });
+}
+
+// Tabla WHS simplificada: cuántos diferenciales (los más bajos, dentro del historial
+// más reciente) se promedian según cuántas rondas hay disponibles.
+function whsBestCount(numRounds) {
+  if (numRounds <= 0) return 0;
+  if (numRounds <= 4) return 1;
+  if (numRounds <= 6) return 1;
+  if (numRounds <= 8) return 2;
+  if (numRounds <= 11) return 3;
+  if (numRounds <= 14) return 4;
+  if (numRounds <= 16) return 5;
+  if (numRounds <= 18) return 6;
+  if (numRounds === 19) return 7;
+  return 8; // 20+ rondas: mejores 8 de las últimas 20
+}
+
+// Calcula el Handicap Index a partir del historial de diferenciales de un jugador.
+// history: array de diferenciales (número), del más antiguo al más reciente.
+function computeHandicapFromHistory(history) {
+  if (!history || history.length === 0) return null;
+  const recent = history.slice(-20); // WHS solo considera las últimas 20 rondas
+  const n = whsBestCount(recent.length);
+  const best = [...recent].sort((a, b) => a - b).slice(0, n);
+  const avg = best.reduce((a, b) => a + b, 0) / best.length;
+  return +avg.toFixed(1);
 }
 
 function showTab(tab) {
@@ -598,10 +627,13 @@ async function saveDirectPlayer() {
   
   if (editingPlayerCode) {
     const idx = appState.savedPlayers.findIndex(p => p.code === editingPlayerCode);
-    if (idx > -1) { appState.savedPlayers[idx].name = name; appState.savedPlayers[idx].hcp = hcp; appState.savedPlayers[idx].initialHcp = hcp; }
+    if (idx > -1) {
+      appState.savedPlayers[idx].name = name; appState.savedPlayers[idx].hcp = hcp; appState.savedPlayers[idx].initialHcp = hcp;
+      appState.savedPlayers[idx].hcpHistory = []; // hándicap fijado manualmente: se reinicia el historial
+    }
     editingPlayerCode = null;
   } else {
-    appState.savedPlayers.push({ code: generateCode('PLY'), name: name, hcp: hcp, initialHcp: hcp });
+    appState.savedPlayers.push({ code: generateCode('PLY'), name: name, hcp: hcp, initialHcp: hcp, hcpHistory: [] });
   }
   await saveToStorage(); cancelPlayerEdit(); renderJugadoresTab();
 }
@@ -705,7 +737,7 @@ async function startGame() {
     
     if(select.style.display === 'none' || pCode === "NEW_OPTION") {
       pName = inputName.value.trim(); if(!pName) continue;
-      pCode = generateCode('PLY'); appState.savedPlayers.push({ code: pCode, name: pName, hcp: pHcp, initialHcp: pHcp });
+      pCode = generateCode('PLY'); appState.savedPlayers.push({ code: pCode, name: pName, hcp: pHcp, initialHcp: pHcp, hcpHistory: [] });
       dynamicPlayersAdded = true;
     } else if(pCode !== "") {
       const match = appState.savedPlayers.find(p => p.code === pCode); pName = match ? match.name : 'Desconocido';
@@ -800,15 +832,26 @@ function recalcLiveMatrixTotals() {
 async function showResults() {
   let finalResults = activeGame.players.map(p => {
     const totalStrokes = activeGame.scores[p.code].reduce((a, b) => a + (parseInt(b) || 0), 0);
-    let hcpNeto = null;
+    let hcpNeto = null; // diferencial de esta ronda (equivalente a 18 hoyos)
     if (totalStrokes > 0) {
-      if (activeGame.course.holes === 9) hcpNeto = +((totalStrokes - (p.hcp / 2) - activeGame.course.totalPar) * 1.92).toFixed(1);
-      else hcpNeto = +((totalStrokes - p.hcp - activeGame.course.totalPar) * 0.96).toFixed(1);
+      // Diferencial = qué tan lejos jugaste del par del campo, sin restar tu propio
+      // hándicap (el hándicap NO forma parte del cálculo del diferencial; si se restara,
+      // cualquier jugador que rindiera "según su nivel" terminaría con diferencial ≈ 0).
+      if (activeGame.course.holes === 9) hcpNeto = +((totalStrokes - activeGame.course.totalPar) * 1.92).toFixed(1);
+      else hcpNeto = +((totalStrokes - activeGame.course.totalPar) * 0.96).toFixed(1);
     }
+    let hcpNuevo = null; // hándicap index actualizado (promedio del historial), no solo el diferencial del día
     if (hcpNeto !== null) {
-      const gp = appState.savedPlayers.find(sp => sp.code === p.code); if (gp) gp.hcp = hcpNeto;
+      const gp = appState.savedPlayers.find(sp => sp.code === p.code);
+      if (gp) {
+        if (!Array.isArray(gp.hcpHistory)) gp.hcpHistory = [];
+        gp.hcpHistory.push(hcpNeto);
+        if (gp.hcpHistory.length > 20) gp.hcpHistory = gp.hcpHistory.slice(-20); // WHS: últimas 20 rondas
+        const newHcp = computeHandicapFromHistory(gp.hcpHistory);
+        if (newHcp !== null) { gp.hcp = newHcp; hcpNuevo = newHcp; }
+      }
     }
-    return { code: p.code, name: p.name, total: totalStrokes, hcpNeto: hcpNeto, hcpIdx: p.hcp };
+    return { code: p.code, name: p.name, total: totalStrokes, hcpNeto: hcpNeto, hcpNuevo: hcpNuevo, hcpIdx: p.hcp };
   }).filter(r => r.total > 0).sort((a,b) => a.total - b.total);
 
   if(finalResults.length === 0) { alert('Ingresa scores.'); return; }
@@ -842,10 +885,12 @@ function renderFinalDashboard(results, cardsId, tableId, parDelCampo) {
     `;
   }
   
-  let html = `<thead><tr><th>Pos.</th><th>Jugador</th><th>Hcp Index</th><th>Golpes</th><th>vs Par</th><th>Nuevo Hándicap</th></tr></thead><tbody>`;
+  let html = `<thead><tr><th>Pos.</th><th>Jugador</th><th>Hcp Index</th><th>Golpes</th><th>vs Par</th><th>Diferencial</th><th>Nuevo Hcp Index</th></tr></thead><tbody>`;
   results.forEach((r, i) => {
     const diff = r.total - parDelCampo;
-    html += `<tr><td><b>#${i+1}</b></td><td><strong>${r.name}</strong></td><td>${r.hcpIdx}</td><td><b>${r.total}</b></td><td>${diff === 0 ? 'E' : diff > 0 ? `+${diff}` : diff}</td><td><b>${r.hcpNeto ?? '—'}</b></td></tr>`;
+    // r.hcpNuevo puede no existir en partidas guardadas antes de esta corrección; en ese caso mostramos el hcpIdx como respaldo
+    const nuevoHcp = r.hcpNuevo ?? r.hcpIdx ?? '—';
+    html += `<tr><td><b>#${i+1}</b></td><td><strong>${r.name}</strong></td><td>${r.hcpIdx}</td><td><b>${r.total}</b></td><td>${diff === 0 ? 'E' : diff > 0 ? `+${diff}` : diff}</td><td>${r.hcpNeto ?? '—'}</td><td><b>${nuevoHcp}</b></td></tr>`;
   });
   table.innerHTML = html + '</tbody>';
 }
